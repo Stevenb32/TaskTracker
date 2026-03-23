@@ -9,9 +9,9 @@ public enum TaskStatus
 public class TaskItem
 {
     // TaskItem properties
-    public Guid Id { get; }
-    public string Title { get; } // not null/empty/whitespace / max length 100
-    public string? Notes { get; } // is this correct? / optional/max length 500 / nullable
+    public Guid Id { get; } // unique Id
+    public string Title { get; } 
+    public string? Notes { get; } // nullable 
     public TaskStatus Status { get; private set; }
     public DateTimeOffset CreatedAt { get; }
     public DateTimeOffset? CompletedAt { get; private set; } // nullable
@@ -34,22 +34,22 @@ public class TaskItem
         var trimmedTitle = title.Trim();
         var trimmedNotes = notes?.Trim();
 
-        if (string.IsNullOrWhiteSpace(trimmedTitle))
+        if (string.IsNullOrWhiteSpace(trimmedTitle)) // title not null or whitespace
         {
             throw new ArgumentException("Title cannot be null, empty, or whitespace.", nameof(title));
         }       
 
-        if (trimmedTitle.Length > 100)
+        if (trimmedTitle.Length > 100) // title 100 char or less
         {
             throw new ArgumentException("Title cannot exceed 100 characters.", nameof(title));
         }
 
-        if (trimmedNotes is not null && trimmedNotes.Length > 500)
+        if (trimmedNotes is not null && trimmedNotes.Length > 500) // notes 500 char or less
         {
             throw new ArgumentException("Notes cannot exceed 500 characters.", nameof(notes));
         }
 
-        var normalizedNotes = string.IsNullOrEmpty(trimmedNotes) ? null : trimmedNotes;
+        var normalizedNotes = string.IsNullOrEmpty(trimmedNotes) ? null : trimmedNotes; // notes null or normalized 
 
         return new TaskItem(
             Guid.NewGuid(),
@@ -57,4 +57,29 @@ public class TaskItem
             normalizedNotes,
             now);
     }
+
+    public void Complete(DateTimeOffset now)
+    {        
+        if (Status == TaskStatus.Completed)
+        {
+            return;
+        }
+
+        Status = TaskStatus.Completed;
+        CompletedAt = now;        
+    }
+
+    public void Reopen()
+    {
+        if (Status != TaskStatus.Completed)
+        {
+            return;
+        }
+
+        Status = TaskStatus.Active;
+        CompletedAt = null;
+    }
+
+
+
 }
