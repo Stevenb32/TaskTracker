@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="TaskTracker.Domain.Tests/TaskTracker.Domain.Tests.csproj" />
+  <Project Path="TaskTracker.Domain/TaskTracker.Domain.csproj" />
+</Solution>

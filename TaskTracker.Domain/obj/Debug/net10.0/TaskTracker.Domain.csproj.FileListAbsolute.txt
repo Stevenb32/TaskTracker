@@ -1,0 +1,11 @@
+C:\Users\itsst\repos\TaskTracker\TaskTracker.Domain\bin\Debug\net10.0\TaskTracker.Domain.deps.json
+C:\Users\itsst\repos\TaskTracker\TaskTracker.Domain\bin\Debug\net10.0\TaskTracker.Domain.dll
+C:\Users\itsst\repos\TaskTracker\TaskTracker.Domain\bin\Debug\net10.0\TaskTracker.Domain.pdb
+C:\Users\itsst\repos\TaskTracker\TaskTracker.Domain\obj\Debug\net10.0\TaskTracker.Domain.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\itsst\repos\TaskTracker\TaskTracker.Domain\obj\Debug\net10.0\TaskTracker.Domain.AssemblyInfoInputs.cache
+C:\Users\itsst\repos\TaskTracker\TaskTracker.Domain\obj\Debug\net10.0\TaskTracker.Domain.AssemblyInfo.cs
+C:\Users\itsst\repos\TaskTracker\TaskTracker.Domain\obj\Debug\net10.0\TaskTracker.Domain.csproj.CoreCompileInputs.cache
+C:\Users\itsst\repos\TaskTracker\TaskTracker.Domain\obj\Debug\net10.0\TaskTracker.Domain.dll
+C:\Users\itsst\repos\TaskTracker\TaskTracker.Domain\obj\Debug\net10.0\refint\TaskTracker.Domain.dll
+C:\Users\itsst\repos\TaskTracker\TaskTracker.Domain\obj\Debug\net10.0\TaskTracker.Domain.pdb
+C:\Users\itsst\repos\TaskTracker\TaskTracker.Domain\obj\Debug\net10.0\ref\TaskTracker.Domain.dll
