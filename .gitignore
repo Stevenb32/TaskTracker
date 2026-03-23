@@ -1,0 +1,19 @@
+# Build output
+**/[Bb]in/
+**/[Oo]bj/
+
+# IDE files
+.vs/
+.vscode/
+*.user
+*.rsuser
+*.suo
+
+# Test and coverage output
+TestResults/
+coverage/
+*.coverage
+*.coveragexml
+
+# Logs
+*.log
