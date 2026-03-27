@@ -59,6 +59,7 @@ public class TaskItem
         // notes null or normalized 
         var normalizedNotes = string.IsNullOrEmpty(trimmedNotes) ? null : trimmedNotes; 
 
+        // time is not default
         if (now == default)
         {
             throw new ArgumentException("Now must be a valid time.", nameof(now));
@@ -85,7 +86,7 @@ public class TaskItem
         }
 
         Status = TaskStatus.Completed;
-        CompletedAt = now;        
+        CompletedAt = now;
     } // end of Complete
 
 

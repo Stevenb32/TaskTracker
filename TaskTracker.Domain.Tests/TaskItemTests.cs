@@ -3,9 +3,12 @@
 public class TaskItemTests
 {
     // MethodName_WhenCondition_ExpectedResult   
-    private readonly ITestOutputHelper _output;
+    // private readonly ITestOutputHelper _output;
 
-    // Create Tests ==================================================================================================================
+    // ===============================================================================================================================
+    // * CREATE TESTS
+    // ===============================================================================================================================
+
     // happy path tests --------------------------------------------------------------------------------------------------------------
     [Fact]
     public void Create_WhenInputsAreValid_ReturnsTaskItem()
@@ -141,7 +144,7 @@ public class TaskItemTests
     }
 
     [Fact]
-    public void Create_WhenNotesExceed500Characters_ThrowsArgumentException()
+    public void Create_WhenNotesExceeds500Characters_ThrowsArgumentException()
     {
         // Given        
         var validTitle = "Buy milk";
@@ -294,41 +297,169 @@ public class TaskItemTests
     }
 
 
+    // ===============================================================================================================================
+    // COMPLETE TESTS 
+    // ===============================================================================================================================
 
-    // Close Tests ===================================================================================================================
     // happy path tests --------------------------------------------------------------------------------------------------------------    
+
     [Fact]
-    public void TestName()
+    public void Complete_WhenTaskIsActive_SetsStatusToCompleted()
     {
-        /// Given        
+        // Given        
         var validTitle = "Valid Title";
         var validNotes = "Valid Notes";
-        var createdTime = new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero);
-        var completedTime = new DateTimeOffset(2026, 4, 20, 16, 20, 0, TimeSpan.Zero);
+        var validCreateTime = new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero);
+        var validCompleteTime = new DateTimeOffset(2026, 4, 20, 16, 20, 0, TimeSpan.Zero);
+        var task = TaskItem.Create(validTitle, validNotes, validCreateTime);
+
+        // When        
+        task.Complete(validCompleteTime);
+    
+        // Then       
         
-        // When
-        var task = TaskItem.Create(validTitle, validNotes, createdTime);
-        task.Complete(completedTime);       
+        task.Status.Should().Be(TaskStatus.Completed);
+    }
+
+    [Fact]
+    public void Complete_WhenTaskIsActive_SetsCompletedAt()
+    {
+        // Given        
+        var validTitle = "Valid Title";
+        var validNotes = "Valid Notes";
+        var validCreateTime = new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero);
+        var validCompleteTime = new DateTimeOffset(2026, 4, 20, 16, 20, 0, TimeSpan.Zero);
+        var task = TaskItem.Create(validTitle, validNotes, validCreateTime);
+
+        // When        
+        task.Complete(validCompleteTime);
     
         // Then
-    
+        task.CompletedAt.Should().Be(validCompleteTime);
     }
 
     // defaults and state tests -----------------------------------------------------------------------------------------------------
 
-
-
-
-    // Reopen Tests ==================================================================================================================
-
-
-
-    // helpers
-    public TaskItemTests(ITestOutputHelper output)
+    [Fact]
+    public void Complete_WhenTaskIsActive_OnlyUpdatesCompletionFields()
     {
-        _output = output;
-        // _output.WriteLine($"Task title: {task.Title}");
+        // Given
+        var validTitle = "Valid Title";
+        var validNotes = "Valid Notes";
+        var validCreateTime = new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero);
+        var validCompleteTime = new DateTimeOffset(2026, 4, 20, 16, 20, 0, TimeSpan.Zero);
+
+        var task = TaskItem.Create(validTitle, validNotes, validCreateTime);
+
+        var originalId = task.Id;
+        var originalTitle = task.Title;
+        var originalNotes = task.Notes;
+        var originalCreatedAt = task.CreatedAt;
+
+        // When
+        task.Complete(validCompleteTime);
+
+        // Then
+        task.Id.Should().Be(originalId);
+        task.Title.Should().Be(originalTitle);
+        task.Notes.Should().Be(originalNotes);
+        task.CreatedAt.Should().Be(originalCreatedAt);
+        task.Status.Should().Be(TaskStatus.Completed);
+        task.CompletedAt.Should().Be(validCompleteTime);
+    }
+    
+
+
+
+    [Fact]
+    public void Complete_WhenTaskIsActive_DoesNotChangeId()
+    {
+        // Given
+        var validTitle = "Valid Title";
+        var validNotes = "Valid Notes";
+        var validCreateTime = new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero);
+        var validCompleteTime = new DateTimeOffset(2026, 4, 20, 16, 20, 0, TimeSpan.Zero);
+        var task = TaskItem.Create(validTitle, validNotes, validCreateTime);
+        var id = task.Id;
+
+        // When
+        task.Complete(validCompleteTime);
+
+        // Then
+        task.Id.Should().Be(id);
+    }
+
+    [Fact]
+    public void Complete_WhenTaskIsAlreadyCompleted_LeavesStateUnchanged()
+    {
+        // Given        
+        var validTitle = "Valid Title";
+        var validNotes = "Valid Notes";
+        var validCreateTime = new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero);        
+
+        var task = TaskItem.Create(validTitle, validNotes, validCreateTime);
+
+        var firstCompleteTime = new DateTimeOffset(2026, 4, 20, 16, 20, 0, TimeSpan.Zero);
+        var secondCompleteTime = new DateTimeOffset(2026, 4, 21, 10, 0, 0, TimeSpan.Zero);
+
+        task.Complete(firstCompleteTime);
+
+        var idBeforeSecondComplete = task.Id;
+        var titleBeforeSecondComplete = task.Title;
+        var notesBeforeSecondComplete = task.Notes;
+        var createdAtBeforeSecondComplete = task.CreatedAt;
+        var statusBeforeSecondComplete = task.Status;
+        var completedAtBeforeSecondComplete = task.CompletedAt;
+
+        // When        
+        task.Complete(secondCompleteTime);
+    
+        // Then
+        task.Id.Should().Be(idBeforeSecondComplete);
+        task.Title.Should().Be(titleBeforeSecondComplete);
+        task.Notes.Should().Be(notesBeforeSecondComplete);
+        task.Status.Should().Be(statusBeforeSecondComplete);
+        task.CreatedAt.Should().Be(createdAtBeforeSecondComplete);       
+        task.CompletedAt.Should().Be(completedAtBeforeSecondComplete);
     }
 
 
-} // end TaskItemTests
+    // validation tests -----------------------------------------------------------------------------------------------------
+    [Fact]
+    public void Complete_WhenTimeIsDefault_ThrowsArgumentException()
+    {
+        // Given
+        var validTitle = "Valid Title";
+        var validNotes = "Valid Notes";
+        var validCreateTime = new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero);
+        
+        var defaultTime = default(DateTimeOffset);
+
+        var task = TaskItem.Create(validTitle, validNotes, validCreateTime);
+    
+        // When        
+        Action act = () => task.Complete(defaultTime);
+    
+        // Then
+        act.Should().Throw<ArgumentException>().WithParameterName("now");
+    }
+    
+
+    // ===============================================================================================================================
+    // REOPEN TESTS
+    // ===============================================================================================================================
+
+
+
+    // ===============================================================================================================================
+    // helpers
+    // ===============================================================================================================================
+    // public TaskItemTests(ITestOutputHelper output)
+    // {
+    //     _output = output;
+    //     // _output.WriteLine($"Task title: {task.Title}");
+    // }
+
+
+
+}   // ===============================================================================================================================
