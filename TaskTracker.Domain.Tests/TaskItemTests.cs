@@ -3,6 +3,7 @@
 public class TaskItemTests
 {
     // MethodName_WhenCondition_ExpectedResult   
+
     // private readonly ITestOutputHelper _output;
 
     // ===============================================================================================================================
@@ -380,25 +381,6 @@ public class TaskItemTests
         task.Status.Should().Be(TaskStatus.Completed);
         task.CompletedAt.Should().Be(validCompleteTime);
     }
-    
-
-    [Fact]
-    public void Complete_WhenTaskIsActive_DoesNotChangeId()
-    {
-        // Given
-        var validTitle = "Valid Title";
-        var validNotes = "Valid Notes";
-        var validCreateTime = new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero);
-        var validCompleteTime = new DateTimeOffset(2026, 4, 20, 16, 20, 0, TimeSpan.Zero);
-        var task = TaskItem.Create(validTitle, validNotes, validCreateTime);
-        var id = task.Id;
-
-        // When
-        task.Complete(validCompleteTime);
-
-        // Then
-        task.Id.Should().Be(id);
-    }
 
     [Fact]
     public void Complete_WhenTaskIsAlreadyCompleted_LeavesStateUnchanged()
@@ -465,43 +447,104 @@ public class TaskItemTests
     // happy path
     // ===============================================================================================================================
 
+    [Fact]
+    public void Reopen_WhenTaskIsCompleted_SetsStatusToActive()
+    {
+        // Given
+        var validTitle = "Valid Title";
+        var validNotes = "Valid Notes";
+        var validCreateTime = new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero);
+        var validCompleteTime = new DateTimeOffset(2026, 4, 20, 16, 20, 0, TimeSpan.Zero);
 
+        var task = TaskItem.Create(validTitle, validNotes, validCreateTime);
+        task.Complete(validCompleteTime);
 
+        // When
+        task.Reopen();
+    
+        // Then
+        task.Status.Should().Be(TaskStatus.Active);
+    }
 
+    [Fact]
+    public void Reopen_WhenTaskIsCompleted_SetsCompletedAtToNull()
+    {
+        // Given
+        var validTitle = "Valid Title";
+        var validNotes = "Valid Notes";
+        var validCreateTime = new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero);
+        var validCompleteTime = new DateTimeOffset(2026, 4, 20, 16, 20, 0, TimeSpan.Zero);
 
+        var task = TaskItem.Create(validTitle, validNotes, validCreateTime);
+        task.Complete(validCompleteTime);
 
+        // When
+        task.Reopen();
+    
+        // Then
+        task.CompletedAt.Should().BeNull();
+    }
 
 
     // ===============================================================================================================================
     // defaults and state
     // ===============================================================================================================================
 
+    [Fact]
+    public void Reopen_WhenTaskIsCompleted_LeavesOtherPropertiesUnchanged()
+    {
+        // Given
+        var validTitle = "Valid Title";
+        var validNotes = "Valid Notes";
+        var validCreateTime = new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero);
+        var validCompleteTime = new DateTimeOffset(2026, 4, 20, 16, 20, 0, TimeSpan.Zero);
 
+        var task = TaskItem.Create(validTitle, validNotes, validCreateTime);
+        task.Complete(validCompleteTime);
 
+        var idBeforeReopen = task.Id;
+        var titleBeforeReopen = task.Title;
+        var notesBeforeReopen = task.Notes;
+        var createdAtBeforeReopen = task.CreatedAt;
 
+        // When
+        task.Reopen();
 
+        // Then
+        task.Id.Should().Be(idBeforeReopen);
+        task.Title.Should().Be(titleBeforeReopen);
+        task.Notes.Should().Be(notesBeforeReopen);
+        task.CreatedAt.Should().Be(createdAtBeforeReopen);
+    }
 
-    // ===============================================================================================================================
-    // validation tests
-    // ===============================================================================================================================
+    [Fact]
+    public void Reopen_WhenTaskIsActive_LeavesStateUnchanged()
+    {
+        // Given        
+        var validTitle = "Valid Title";
+        var validNotes = "Valid Notes";
+        var validCreateTime = new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero);        
 
+        var task = TaskItem.Create(validTitle, validNotes, validCreateTime);        
+        
+        var idBeforeReopen = task.Id;
+        var titleBeforeReopen = task.Title;
+        var notesBeforeReopen = task.Notes;
+        var createdAtBeforeReopen = task.CreatedAt;
+        var statusBeforeReopen = task.Status;
+        var completedAtBeforeReopen = task.CompletedAt;
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+        // When        
+        task.Reopen();
+    
+        // Then
+        task.Id.Should().Be(idBeforeReopen);
+        task.Title.Should().Be(titleBeforeReopen);
+        task.Notes.Should().Be(notesBeforeReopen);
+        task.Status.Should().Be(statusBeforeReopen);
+        task.CreatedAt.Should().Be(createdAtBeforeReopen);       
+        task.CompletedAt.Should().Be(completedAtBeforeReopen);
+    }
 
 
 
