@@ -17,6 +17,10 @@
 
   <ItemGroup>
     <Using Include="Xunit" />
+    <Using Include="Xunit.Abstractions" /> 
+    <Using Include="FluentAssertions" />  
+      
+
   </ItemGroup>
 
   <ItemGroup>
