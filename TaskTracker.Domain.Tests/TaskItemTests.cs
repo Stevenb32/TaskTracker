@@ -5,7 +5,7 @@ public class TaskItemTests
     // MethodName_WhenCondition_ExpectedResult   
     private readonly ITestOutputHelper _output;
 
-    // Create Tests
+    // Create Tests ==================================================================================================================
     // happy path tests --------------------------------------------------------------------------------------------------------------
     [Fact]
     public void Create_WhenInputsAreValid_ReturnsTaskItem()
@@ -13,10 +13,10 @@ public class TaskItemTests
         // Given        
         var validTitle = "Valid Title";
         var validNotes = "Valid Notes";
-        var now = new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero);
+        var validCreateTime = new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero);
         
         // When
-        var task = TaskItem.Create(validTitle, validNotes, now);
+        var task = TaskItem.Create(validTitle, validNotes, validCreateTime);
     
         // Then       
 
@@ -24,7 +24,7 @@ public class TaskItemTests
         task.Title.Should().Be(validTitle);
         task.Notes.Should().Be(validNotes);
         task.Status.Should().Be(TaskStatus.Active);
-        task.CreatedAt.Should().Be(now);
+        task.CreatedAt.Should().Be(validCreateTime);
         task.CompletedAt.Should().BeNull();
     }
 
@@ -35,11 +35,11 @@ public class TaskItemTests
         // Given        
         var validTitle = "Buy milk";
         var validNotes = "From the store";
-        var now = new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero);
+        var validCreateTime = new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero);
         
         // When
-        var task1 = TaskItem.Create(validTitle, validNotes, now);
-        var task2 = TaskItem.Create(validTitle, validNotes, now);
+        var task1 = TaskItem.Create(validTitle, validNotes, validCreateTime);
+        var task2 = TaskItem.Create(validTitle, validNotes, validCreateTime);
     
         // Then
         task1.Id.Should().NotBeEmpty();
@@ -53,28 +53,28 @@ public class TaskItemTests
         // Given        
         var validTitle = "Buy milk";
         var validNotes = "From the store";        
-        var now = new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero);
+        var validCreateTime = new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero);
         
         // When
-        var task = TaskItem.Create(validTitle, validNotes, now);
+        var task = TaskItem.Create(validTitle, validNotes, validCreateTime);
     
         // Then
         task.Status.Should().Be(TaskStatus.Active);
     }
 
     [Fact]
-    public void Create_WhenCalled_SetsCreatedAtToNow()
+    public void Create_WhenCalled_SetsCreatedAtToValidCreateTime()
     {
         // Given        
         var validTitle = "Buy milk";
         var validNotes = "From the store";
-        var now = new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero);
+        var validCreateTime = new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero);
         
         // When
-        var task = TaskItem.Create(validTitle, validNotes, now);
+        var task = TaskItem.Create(validTitle, validNotes, validCreateTime);
     
         // Then
-        task.CreatedAt.Should().Be(now);
+        task.CreatedAt.Should().Be(validCreateTime);
     }
 
     [Fact]
@@ -83,10 +83,10 @@ public class TaskItemTests
         // Given        
         var validTitle = "Buy milk";
         var validNotes = "From the store";
-        var now = new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero);
+        var validCreateTime = new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero);
         
         // When
-        var task = TaskItem.Create(validTitle, validNotes, now);
+        var task = TaskItem.Create(validTitle, validNotes, validCreateTime);
     
         // Then
         task.CompletedAt.Should().BeNull();
@@ -100,10 +100,10 @@ public class TaskItemTests
         var titleLimit = 100;
         var titleAtLimit = new string('a', titleLimit);
         var validNotes = "From the store";        
-        var now = new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero);
+        var validCreateTime = new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero);
     
         // When
-        var task = TaskItem.Create(titleAtLimit, validNotes, now);
+        var task = TaskItem.Create(titleAtLimit, validNotes, validCreateTime);
 
         // Then
         task.Title.Should().Be(titleAtLimit);
@@ -115,10 +115,10 @@ public class TaskItemTests
         // Given
         var exceedsTitleLimit = new string('a', 101);
         var validNotes = "From the store";        
-        var now = new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero);
+        var validCreateTime = new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero);
         
         // When
-        Action act = () => TaskItem.Create(exceedsTitleLimit, validNotes, now);
+        Action act = () => TaskItem.Create(exceedsTitleLimit, validNotes, validCreateTime);
     
         // Then
         act.Should().Throw<ArgumentException>().WithParameterName("title");
@@ -131,10 +131,10 @@ public class TaskItemTests
         var notesLimit = 500;
         var validTitle = "Buy milk";
         var notesAtLimit = new string('a', notesLimit);        
-        var now = new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero);
+        var validCreateTime = new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero);
     
         // When
-        var task = TaskItem.Create(validTitle, notesAtLimit, now);
+        var task = TaskItem.Create(validTitle, notesAtLimit, validCreateTime);
 
         // Then
         task.Notes.Should().Be(notesAtLimit);
@@ -144,12 +144,12 @@ public class TaskItemTests
     public void Create_WhenNotesExceed500Characters_ThrowsArgumentException()
     {
         // Given        
-        var title = "Buy milk";
+        var validTitle = "Buy milk";
         var exceedsNoteLimit = new string('a', 501);
-        var now = new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero);
+        var validCreateTime = new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero);
         
         // When
-        Action act = () => TaskItem.Create(title, exceedsNoteLimit, now);
+        Action act = () => TaskItem.Create(validTitle, exceedsNoteLimit, validCreateTime);
     
         // Then
         act.Should().Throw<ArgumentException>().WithParameterName("notes");
@@ -163,10 +163,10 @@ public class TaskItemTests
         // Given   
         string? nullTitle = null;   
         var validNotes = "From the store";  
-        var now = new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero);
+        var validCreateTime = new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero);
         
         // When
-        Action act = () => TaskItem.Create(nullTitle, validNotes, now);
+        Action act = () => TaskItem.Create(nullTitle, validNotes, validCreateTime);
     
         // Then
         act.Should().Throw<ArgumentException>().WithParameterName("title");
@@ -178,10 +178,10 @@ public class TaskItemTests
         // Given  
         var emptyTitle = "";   
         var validNotes = "From the store";   
-        var now = new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero);
+        var validCreateTime = new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero);
         
         // When
-        Action act = () => TaskItem.Create(emptyTitle, validNotes, now);
+        Action act = () => TaskItem.Create(emptyTitle, validNotes, validCreateTime);
     
         // Then
         act.Should().Throw<ArgumentException>().WithParameterName("title");
@@ -193,13 +193,28 @@ public class TaskItemTests
         // Given   
         var whitespaceTitle = " ";   
         var validNotes = "From the store";  
-        var now = new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero);
+        var validCreateTime = new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero);
         
         // When
-        Action act = () => TaskItem.Create(whitespaceTitle, validNotes, now);
+        Action act = () => TaskItem.Create(whitespaceTitle, validNotes, validCreateTime);
     
         // Then
         act.Should().Throw<ArgumentException>().WithParameterName("title");
+    }
+
+    [Fact]
+    public void Create_WhenTimeIsDefault_ThrowsArgumentException()
+    {
+        // Given
+        var validTitle = "Valid Title";
+        var validNotes = "Valid Notes";
+        var defaultTime = default(DateTimeOffset);
+    
+        // When
+        Action act = () => TaskItem.Create(validTitle, validNotes, defaultTime);
+    
+        // Then
+        act.Should().Throw<ArgumentException>().WithParameterName("now");
     }
 
     // normalization tests -----------------------------------------------------------------------------------------------------
@@ -209,10 +224,10 @@ public class TaskItemTests
         // Given        
         var titleWithWhiteSpace = "  Buy milk  ";        
         var validNotes = "From the store";
-        var now = new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero);
+        var validCreateTime = new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero);
         
         // When
-        var task = TaskItem.Create(titleWithWhiteSpace, validNotes, now);
+        var task = TaskItem.Create(titleWithWhiteSpace, validNotes, validCreateTime);
     
         // Then
         task.Title.Should().Be("Buy milk");        
@@ -222,12 +237,12 @@ public class TaskItemTests
     public void Create_WhenNotesHasLeadingOrTrailingSpaces_TrimsNotes()
     {
         // Given        
-        var title = "Buy milk";
+        var validTitle = "Buy milk";
         var notesWithWhiteSpace = "   From the store   ";
-        var now = new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero);
+        var validCreateTime = new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero);
         
         // When
-        var task = TaskItem.Create(title, notesWithWhiteSpace, now);
+        var task = TaskItem.Create(validTitle, notesWithWhiteSpace, validCreateTime);
     
         // Then
         task.Notes.Should().Be("From the store");  
@@ -237,12 +252,12 @@ public class TaskItemTests
     public void Create_WhenNotesIsWhitespace_SetsNotesToNull()
     {
         // Given        
-        var title = "Buy milk";
+        var validTitle = "Buy milk";
         var notesWithWhiteSpace = "  ";
-        var now = new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero);
+        var validCreateTime = new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero);
         
         // When
-        var task = TaskItem.Create(title, notesWithWhiteSpace, now);
+        var task = TaskItem.Create(validTitle, notesWithWhiteSpace, validCreateTime);
     
         // Then
         task.Notes.Should().BeNull();
@@ -252,12 +267,12 @@ public class TaskItemTests
     public void Create_WhenNotesIsEmpty_SetsNotesToNull()
     {
         // Given        
-        var title = "Buy milk";
+        var validTitle = "Buy milk";
         var emptyNotes = "";
-        var now = new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero);
+        var validCreateTime = new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero);
         
         // When
-        var task = TaskItem.Create(title, emptyNotes, now);
+        var task = TaskItem.Create(validTitle, emptyNotes, validCreateTime);
     
         // Then
         task.Notes.Should().BeNull();
@@ -267,12 +282,12 @@ public class TaskItemTests
     public void Create_WhenNotesIsNull_SetsNotesToNull()
     {
         // Given        
-        var title = "Buy milk";
+        var validTitle = "Buy milk";
         string? nullNotes = null;
-        var now = new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero);
+        var validCreateTime = new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero);
         
         // When
-        var task = TaskItem.Create(title, nullNotes, now);
+        var task = TaskItem.Create(validTitle, nullNotes, validCreateTime);
     
         // Then
         task.Notes.Should().BeNull();
@@ -280,10 +295,31 @@ public class TaskItemTests
 
 
 
-    // Close Tests
+    // Close Tests ===================================================================================================================
+    // happy path tests --------------------------------------------------------------------------------------------------------------    
+    [Fact]
+    public void TestName()
+    {
+        /// Given        
+        var validTitle = "Valid Title";
+        var validNotes = "Valid Notes";
+        var createdTime = new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero);
+        var completedTime = new DateTimeOffset(2026, 4, 20, 16, 20, 0, TimeSpan.Zero);
+        
+        // When
+        var task = TaskItem.Create(validTitle, validNotes, createdTime);
+        task.Complete(completedTime);       
+    
+        // Then
+    
+    }
+
+    // defaults and state tests -----------------------------------------------------------------------------------------------------
 
 
-    // Reopen Tests
+
+
+    // Reopen Tests ==================================================================================================================
 
 
 

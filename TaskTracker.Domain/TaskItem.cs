@@ -59,6 +59,11 @@ public class TaskItem
         // notes null or normalized 
         var normalizedNotes = string.IsNullOrEmpty(trimmedNotes) ? null : trimmedNotes; 
 
+        if (now == default)
+        {
+            throw new ArgumentException("Now must be a valid time.", nameof(now));
+        }
+
         return new TaskItem(
             Guid.NewGuid(),
             trimmedTitle,
@@ -68,7 +73,12 @@ public class TaskItem
 
 
     public void Complete(DateTimeOffset now)
-    {        
+    {
+        if (now == default)
+        {
+            throw new ArgumentException("Now must be a valid time.", nameof(now));
+        }
+
         if (Status == TaskStatus.Completed)
         {
             return;
