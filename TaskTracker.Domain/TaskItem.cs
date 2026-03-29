@@ -8,14 +8,16 @@ public enum TaskStatus
 
 public class TaskItem
 {
+    #region Properties
     // TaskItem properties
-    public Guid Id { get; } // unique Id
+    public Guid Id { get; }
     public string Title { get; } 
     public string? Notes { get; } // nullable 
     public TaskStatus Status { get; private set; }
     public DateTimeOffset CreatedAt { get; }
     public DateTimeOffset? CompletedAt { get; private set; } // nullable
     // end of TaskItem properties
+    #endregion
 
 
     // TaskItem Constructor
@@ -34,12 +36,13 @@ public class TaskItem
     public static TaskItem Create(string title, string? notes, DateTimeOffset now)
     {    
 
-        // check if title is null or whitespace
+        // check if title is null empty or whitespace
         if (string.IsNullOrWhiteSpace(title))
         {
             throw new ArgumentException("Title cannot be null, empty, or whitespace.", nameof(title));
         }       
 
+        // remove leading and trailing whitespace
         var trimmedTitle = title.Trim();
 
         // title 100 char or less
@@ -48,6 +51,7 @@ public class TaskItem
             throw new ArgumentException("Title cannot exceed 100 characters.", nameof(title));
         }
 
+        // assign null or remove leading and trailing whitespace
         var trimmedNotes = notes?.Trim();
 
         // notes 500 char or less
@@ -56,7 +60,7 @@ public class TaskItem
             throw new ArgumentException("Notes cannot exceed 500 characters.", nameof(notes));
         }
 
-        // notes null or normalized 
+        // assign notes null or trimmed 
         var normalizedNotes = string.IsNullOrEmpty(trimmedNotes) ? null : trimmedNotes; 
 
         // time is not default
@@ -75,16 +79,19 @@ public class TaskItem
 
     public void Complete(DateTimeOffset now)
     {
+        // default time invalid
         if (now == default)
         {
-            throw new ArgumentException("Now must be a valid time.", nameof(now));
+            throw new ArgumentException(message: "Now must be a valid time.", nameof(now));
         }
 
+        // status equal completed do nothing
         if (Status == TaskStatus.Completed)
         {
             return;
         }
 
+        // update
         Status = TaskStatus.Completed;
         CompletedAt = now;
     } // end of Complete
@@ -92,11 +99,13 @@ public class TaskItem
 
     public void Reopen()
     {
+        // status not completed do nothing
         if (Status != TaskStatus.Completed)
         {
             return;
         }
 
+        // update
         Status = TaskStatus.Active;
         CompletedAt = null;
     } // end of Reopen
