@@ -433,8 +433,27 @@ public class TaskItemTests
 
     #region Helper Methods
     // ===============================================================================================================================
-    // reserved for shared test helpers as the suite grows
+    // shared test data and factory methods for creating TaskItem states
+    // keeps test setup concise and focused on behavior under test
     // ===============================================================================================================================
+
+    private const string ValidTitle = "Buy milk";
+    private const string ValidNotes = "From the store";
+    private static readonly DateTimeOffset ValidCreateTime = new(2026, 3, 25, 7, 0, 0, TimeSpan.Zero);
+    private static readonly DateTimeOffset ValidCompleteTime = new(2026, 4, 20, 16, 20, 0, 0, TimeSpan.Zero);
+
+    private static TaskItem CreateValidTask(string title = ValidTitle, string? notes = ValidNotes, DateTimeOffset? createdAt = null)
+    {
+        return TaskItem.Create(title, notes, createdAt ?? ValidCreateTime);
+    }
+
+    private static TaskItem CreateCompletedTask(string title = ValidTitle, string? notes = ValidNotes, DateTimeOffset? createdAt = null, DateTimeOffset? completedAt = null)
+    {
+        var task = TaskItem.Create(title, notes, createdAt ?? ValidCreateTime);
+        task.Complete(completedAt ?? ValidCompleteTime);
+        return task;
+    }
+
     // public TaskItemTests(ITestOutputHelper output)
     // {
     //     _output = output;
