@@ -2,20 +2,19 @@
 
 public class TaskItemTests
 {
-    // MethodName_WhenCondition_ExpectedResult   
+    // Test naming convention: MethodName_WhenCondition_ExpectedResult   
 
     // private readonly ITestOutputHelper _output;
-
+    
+    // ===============================================================================================================================
     #region Create Tests
     // ===============================================================================================================================
-    // CREATE TESTS ------------------------------------------------------------------------------------------------------------------
-    // ===============================================================================================================================
 
     // ===============================================================================================================================
-    // create title tests  
+    #region Create Title Tests    
     // ===============================================================================================================================
 
-    [Theory] // title invalid if null empty whitespace
+    [Theory] // title required and cannot be null empty or whitespace
     [InlineData(null)] // null
     [InlineData("")] // empty
     [InlineData(" ")] // whitespace
@@ -32,10 +31,11 @@ public class TaskItemTests
         act.Should().Throw<ArgumentException>().WithParameterName("title");
     }
 
-    [Fact] // trimmed title length 101 is invalid
+    [Fact] // guards against validating raw title length instead of trimmed length
     public void Create_WhenTrimmedTitleLengthExceedsLimit_ThrowsArgumentException()
     {
         // Given
+        // surrounding spaces should not make an over-limit title pass validation
         var invalidTitleLengthAfterTrim = "   " + new string('a', 101) + "   ";
         var validNotes = "notes";
         var validCreateTime = new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero);
@@ -47,7 +47,7 @@ public class TaskItemTests
         act.Should().Throw<ArgumentException>().WithParameterName("title");
     }
 
-    [Theory] // invalid title length greater than 100
+    [Theory] // title must not exceed 100 characters after normalization
     [InlineData(101)]
     [InlineData(150)]
     [InlineData(300)]
@@ -65,7 +65,7 @@ public class TaskItemTests
         act.Should().Throw<ArgumentException>().WithParameterName("title");
     }    
 
-    [Theory] // valid title length 100 char or less
+    [Theory] // title lengths within the allowed limit should be accepted
     [InlineData(1)]
     [InlineData(50)]
     [InlineData(100)]
@@ -83,7 +83,7 @@ public class TaskItemTests
         task.Title.Should().Be(validTitle);
     }
 
-    [Fact] // trimmed title length 100 is valid
+    [Fact] // ensures trimming occurs before storing and validating title length
     public void Create_WhenTitleHasSpacesButTrimmedLengthIs100_SetsTrimmedTitle()
     {
         // Given
@@ -97,12 +97,13 @@ public class TaskItemTests
         // Then
         task.Title.Should().Be(new string('a', 100));
     }
+    #endregion // Create Title Tests
 
-    // ===============================================================================================================================
-    // create notes tests  
+    // ===============================================================================================================================    
+    #region Create Notes Tests
     // ===============================================================================================================================
 
-    [Fact] // trimmed notes lenght 501 is invalid
+    [Fact] // guards against validating raw notes length instead of trimmed length
     public void Create_WhenTrimmedNotesLengthExceedsLimit_ThrowsArgumentException()
     {
         // Given
@@ -117,7 +118,7 @@ public class TaskItemTests
         act.Should().Throw<ArgumentException>().WithParameterName("notes");
     }
 
-    [Theory] // invalid notes length
+    [Theory] // notes must not exceed 500 characters after normalization
     [InlineData(501)]
     [InlineData(750)]
     [InlineData(1000)]
@@ -135,11 +136,11 @@ public class TaskItemTests
         act.Should().Throw<ArgumentException>().WithParameterName("notes");
     }
 
-    [Theory] // notes null empty whitespace set null
+    [Theory] // bank notes are normalized to null instead of being stored as empty text
     [InlineData(null)] // null
     [InlineData("")] // empty
     [InlineData(" ")] // whitespace
-    [InlineData("     ")] // moar whitespace
+    [InlineData("     ")] // moar whitespaces
     public void Create_WhenNotesIsNullEmptyOrWhitespace_SetsNotesToNull(string? notes)
     {
         // Given        
@@ -153,7 +154,7 @@ public class TaskItemTests
         task.Notes.Should().BeNull();
     }
 
-    [Fact] // trimmed notes length 500 is valid
+    [Fact] // ensures trimming occurs before storing and validating notes length
     public void Create_WhenNotesHasSpacesButTrimmedLengthIs500_SetsTrimmedNotes()
     {
         // Given
@@ -168,7 +169,7 @@ public class TaskItemTests
         task.Notes.Should().Be(new string('a', 500));
     }
 
-    [Theory] // valid notes length
+    [Theory] // notes within the allowed limit should be preserved
     [InlineData(1)]
     [InlineData(250)]
     [InlineData(500)]
@@ -185,12 +186,13 @@ public class TaskItemTests
         // Then
         task.Notes.Should().Be(notesWithValidLength);
     }
+    #endregion // Create Notes Tests
 
-    // ===============================================================================================================================
-    // create time tests
+    // ===============================================================================================================================    
+    #region Create Time Tests
     // ===============================================================================================================================
 
-    [Fact] // default time invalid
+    [Fact] // create requires a real timestamp and rejects default value
     public void Create_WhenTimeIsDefault_ThrowsArgumentException()
     {
         // Given
@@ -204,12 +206,13 @@ public class TaskItemTests
         // Then
         act.Should().Throw<ArgumentException>().WithParameterName("now");
     }
+    #endregion // Create Time Tests
 
-    // ===============================================================================================================================
-    // create happy path tests
+    // ===============================================================================================================================    
+    #region Create Happy Path Tests
     // ===============================================================================================================================
 
-    [Fact] // valid inputs returns valid task
+    [Fact] // valid inputs should produce a fully initialized active task
     public void Create_WhenInputsAreValid_ReturnsTaskItem()
     {
         // Given        
@@ -230,7 +233,7 @@ public class TaskItemTests
         task.CompletedAt.Should().BeNull();
     }
 
-    [Fact] // tasks assigned different ids
+    [Fact] // each created task should receive a unique identifier
     public void Create_WhenCalled_AssignsDifferentIds()
     {
         // Given        
@@ -247,19 +250,18 @@ public class TaskItemTests
         task2.Id.Should().NotBeEmpty();
         task1.Id.Should().NotBe(task2.Id);
     }
+    #endregion // Create Happy Path Tests
+    #endregion // Create Tests
 
-    #endregion
-
+    // ===============================================================================================================================
     #region Complete Tests
     // ===============================================================================================================================
-    // COMPLETE TESTS ----------------------------------------------------------------------------------------------------------------
+
+    // ===============================================================================================================================    
+    #region Complete Time Tests   
     // ===============================================================================================================================
 
-    // ===============================================================================================================================
-    // complete time tests     
-    // ===============================================================================================================================
-
-    [Fact] // default time invlaid
+    [Fact] // complete requires a real timestamp and rejects default value
     public void Complete_WhenTimeIsDefault_ThrowsArgumentException()
     {
         // Given
@@ -277,12 +279,13 @@ public class TaskItemTests
         // Then
         act.Should().Throw<ArgumentException>().WithParameterName("now");
     }
+    #endregion // Complete Time Tests
 
-    // ===============================================================================================================================
-    // complete status tests  
+    // ===============================================================================================================================    
+    #region Complete Status Tests
     // ===============================================================================================================================
 
-    [Fact] // status equal completed do nothing
+    [Fact] // complete is idempotent once a task is already completed
     public void Complete_WhenTaskIsAlreadyCompleted_LeavesStateUnchanged()
     {
         // Given        
@@ -315,12 +318,13 @@ public class TaskItemTests
         task.CreatedAt.Should().Be(createdAtBeforeSecondComplete);       
         task.CompletedAt.Should().Be(completedAtBeforeSecondComplete);
     }
+    #endregion // Complete Status Tests
 
-    // ===============================================================================================================================
-    // complete happy path tests
+    // ===============================================================================================================================    
+    #region Complete Happy Path Tests
     // ===============================================================================================================================
 
-     [Fact] // updates status to completed and completed time to now
+     [Fact] // completing an active task should only update completion-related fields
     public void Complete_WhenTaskIsActive_OnlyUpdatesCompletionFields()
     {
         // Given
@@ -340,29 +344,29 @@ public class TaskItemTests
         task.Complete(validCompleteTime);
 
         // Then
-        // not updated
+        // unchanged fields
         task.Id.Should().Be(originalId);
         task.Title.Should().Be(originalTitle);
         task.Notes.Should().Be(originalNotes);
         task.CreatedAt.Should().Be(originalCreatedAt);
 
-        // updated 
+        // updated fields
         task.Status.Should().Be(TaskStatus.Completed);
         task.CompletedAt.Should().Be(validCompleteTime);
     }
+    #endregion // Complete Happy Path Tests
+    #endregion // Complete Tests
 
-    #endregion
-
+    
+    // ===============================================================================================================================    
     #region Reopen Tests
     // ===============================================================================================================================
-    // REOPEN TESTS ------------------------------------------------------------------------------------------------------------------
+
+    // ===============================================================================================================================    
+    #region Reopen Happy Path Tests
     // ===============================================================================================================================
 
-    // ===============================================================================================================================
-    // happy path tests
-    // ===============================================================================================================================
-
-    [Fact] // status not completed do nothing
+    [Fact] // reopen is a no-op unless the task is currently completed
     public void Reopen_WhenTaskStatusIsNotCompleted_LeavesStateUnchanged()
     {
         // Given        
@@ -391,7 +395,7 @@ public class TaskItemTests
         task.CompletedAt.Should().Be(completedAtBeforeReopen);
     }
 
-    [Fact] // status not completed do nothing
+    [Fact] // reopening a completed task should only reset completion-related fields
     public void Reopen_WhenTaskStatusCompleted_OnlyUpdatesReopenFields()
     {
         // Given
@@ -414,22 +418,22 @@ public class TaskItemTests
     
         // Then
 
-        //not updated
+        // unchanged fields
         task.Id.Should().Be(idBeforeReopen);
         task.Title.Should().Be(titleBeforeReopen);
         task.Notes.Should().Be(notesBeforeReopen);
         task.CreatedAt.Should().Be(createdAtBeforeReopen);
 
-        // updates
+        // updated fields
         task.Status.Should().Be(TaskStatus.Active);
         task.CompletedAt.Should().BeNull();
     }
-
-    #endregion
+    #endregion // Reopen Happy Path Tests
+    #endregion // #region Reopen Tests
 
     #region Helper Methods
     // ===============================================================================================================================
-    // helper methods
+    // reserved for shared test helpers as the suite grows
     // ===============================================================================================================================
     // public TaskItemTests(ITestOutputHelper output)
     // {
@@ -437,5 +441,5 @@ public class TaskItemTests
     //     // _output.WriteLine($"Task title: {task.Title}");
     // }
 
-    #endregion
+    #endregion // Helper Methods
 }   // ===============================================================================================================================

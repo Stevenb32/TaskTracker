@@ -9,18 +9,17 @@ public enum TaskStatus
 public class TaskItem
 {
     #region Properties
-    // TaskItem properties
+    // core task state
     public Guid Id { get; }
-    public string Title { get; } 
-    public string? Notes { get; } // nullable 
-    public TaskStatus Status { get; private set; }
+    public string Title { get; } // required cannot be null or whitespace
+    public string? Notes { get; } // optional user provided notes
+    public TaskStatus Status { get; private set; } // set internally
     public DateTimeOffset CreatedAt { get; }
-    public DateTimeOffset? CompletedAt { get; private set; } // nullable
-    // end of TaskItem properties
+    public DateTimeOffset? CompletedAt { get; private set; } // null until the task is completed | if reopened set to null
     #endregion
 
 
-    // TaskItem Constructor
+    // private constructor forces callers through Create so invariants stay enforced
     private TaskItem(Guid id, string title, string? notes, DateTimeOffset createdAt)
     {   
         Id = id;
@@ -29,41 +28,40 @@ public class TaskItem
         Status = TaskStatus.Active;
         CreatedAt = createdAt;
         CompletedAt = null;        
-    } // end of constructor TaskItem
+    }
 
 
-    // TaskItem Create Factory
+    // factory method that validates and normalizes input before creating a task
     public static TaskItem Create(string title, string? notes, DateTimeOffset now)
     {    
-
-        // check if title is null empty or whitespace
+        // title is required cannot be null empty or whitespace
         if (string.IsNullOrWhiteSpace(title))
         {
             throw new ArgumentException("Title cannot be null, empty, or whitespace.", nameof(title));
         }       
 
-        // remove leading and trailing whitespace
+        // normalize before validation so surrounding spaces do not bypass length rules
         var trimmedTitle = title.Trim();
 
-        // title 100 char or less
+        // title length is enforced after trimming
         if (trimmedTitle.Length > 100) 
         {
             throw new ArgumentException("Title cannot exceed 100 characters.", nameof(title));
         }
 
-        // assign null or remove leading and trailing whitespace
+        // normalize notes before applying length and null-handling rules
         var trimmedNotes = notes?.Trim();
 
-        // notes 500 char or less
+        // notes are optional but when provided must fit within max length
         if (trimmedNotes is not null && trimmedNotes.Length > 500) 
         {
             throw new ArgumentException("Notes cannot exceed 500 characters.", nameof(notes));
         }
 
-        // assign notes null or trimmed 
+        // store blank notes as null so the domain has a single representation for no notes
         var normalizedNotes = string.IsNullOrEmpty(trimmedNotes) ? null : trimmedNotes; 
 
-        // time is not default
+        // reject default timestamps so tasks are never created with an uninitialized time
         if (now == default)
         {
             throw new ArgumentException("Now must be a valid time.", nameof(now));
@@ -74,40 +72,40 @@ public class TaskItem
             trimmedTitle,
             normalizedNotes,
             now);
-    } // end of TaskItem Create Factory  
+    }
 
 
     public void Complete(DateTimeOffset now)
     {
-        // default time invalid
+        // reject default timestamps so completion is always recorded with a meaningful value
         if (now == default)
         {
             throw new ArgumentException(message: "Now must be a valid time.", nameof(now));
         }
 
-        // status equal completed do nothing
+        // idempotent: completing an already completed task leaves the original completion state unchanged
         if (Status == TaskStatus.Completed)
         {
             return;
         }
 
-        // update
+        // record completion and capture when it happened
         Status = TaskStatus.Completed;
         CompletedAt = now;
-    } // end of Complete
+    }
 
 
     public void Reopen()
     {
-        // status not completed do nothing
+        // idempotent: reopening a task that is not completed leaves state unchanged
         if (Status != TaskStatus.Completed)
         {
             return;
         }
 
-        // update
+        // return task to the active state and clear completed time
         Status = TaskStatus.Active;
         CompletedAt = null;
-    } // end of Reopen
+    } 
 
-} // end of TaskItem
+}
