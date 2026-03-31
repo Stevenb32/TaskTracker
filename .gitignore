@@ -5,15 +5,43 @@
 # IDE files
 .vs/
 .vscode/
+.idea/
 *.user
 *.rsuser
 *.suo
+
+# OS files
+.DS_Store
+Thumbs.db
 
 # Test and coverage output
 TestResults/
 coverage/
 *.coverage
 *.coveragexml
+.coverlet/
+coverage-report/
 
 # Logs
 *.log
+logs/
+temp/
+tmp/
+
+# Environment / secrets
+.env
+.env.*
+appsettings.*.local.json
+
+# NuGet
+*.nupkg
+packages/
+
+# Publish output
+publish/
+
+# Dotnet artifacts
+*.runtimeconfig.dev.json
+
+# Docker
+docker-compose.override.yml
