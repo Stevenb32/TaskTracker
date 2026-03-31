@@ -265,13 +265,8 @@ public class TaskItemTests
     public void Complete_WhenTimeIsDefault_ThrowsArgumentException()
     {
         // Given
-        var validTitle = "Valid Title";
-        var validNotes = "Valid Notes";
-        var validCreateTime = new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero);
-        
-        var defaultTime = default(DateTimeOffset);
-
-        var task = TaskItem.Create(validTitle, validNotes, validCreateTime);
+        var task = CreateValidTask();        
+        var defaultTime = default(DateTimeOffset);       
     
         // When        
         Action act = () => task.Complete(defaultTime);
@@ -289,11 +284,7 @@ public class TaskItemTests
     public void Complete_WhenTaskIsAlreadyCompleted_LeavesStateUnchanged()
     {
         // Given        
-        var validTitle = "Valid Title";
-        var validNotes = "Valid Notes";
-        var validCreateTime = new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero);        
-
-        var task = TaskItem.Create(validTitle, validNotes, validCreateTime);
+        var task = CreateValidTask();
 
         var firstCompleteTime = new DateTimeOffset(2026, 4, 20, 16, 20, 0, TimeSpan.Zero);
         var secondCompleteTime = new DateTimeOffset(2026, 4, 21, 10, 0, 0, TimeSpan.Zero);
@@ -327,13 +318,10 @@ public class TaskItemTests
      [Fact] // completing an active task should only update completion-related fields
     public void Complete_WhenTaskIsActive_OnlyUpdatesCompletionFields()
     {
-        // Given
-        var validTitle = "Valid Title";
-        var validNotes = "Valid Notes";
-        var validCreateTime = new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero);
-        var validCompleteTime = new DateTimeOffset(2026, 4, 20, 16, 20, 0, TimeSpan.Zero);
+        // Given        
+        var task = CreateValidTask();
 
-        var task = TaskItem.Create(validTitle, validNotes, validCreateTime);
+        var validCompleteTime = new DateTimeOffset(2026, 4, 20, 16, 20, 0, TimeSpan.Zero);
 
         var originalId = task.Id;
         var originalTitle = task.Title;
@@ -357,7 +345,7 @@ public class TaskItemTests
     #endregion // Complete Happy Path Tests
     #endregion // Complete Tests
 
-    
+
     // ===============================================================================================================================    
     #region Reopen Tests
     // ===============================================================================================================================
@@ -369,12 +357,8 @@ public class TaskItemTests
     [Fact] // reopen is a no-op unless the task is currently completed
     public void Reopen_WhenTaskStatusIsNotCompleted_LeavesStateUnchanged()
     {
-        // Given        
-        var validTitle = "Valid Title";
-        var validNotes = "Valid Notes";
-        var validCreateTime = new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero);        
-
-        var task = TaskItem.Create(validTitle, validNotes, validCreateTime);        
+        // Given
+        var task = CreateValidTask();        
         
         var idBeforeReopen = task.Id;
         var titleBeforeReopen = task.Title;
@@ -399,19 +383,12 @@ public class TaskItemTests
     public void Reopen_WhenTaskStatusCompleted_OnlyUpdatesReopenFields()
     {
         // Given
-        var validTitle = "Valid Title";
-        var validNotes = "Valid Notes";
-        var validCreateTime = new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero);
-        var validCompleteTime = new DateTimeOffset(2026, 4, 20, 16, 20, 0, TimeSpan.Zero);
-
-        var task = TaskItem.Create(validTitle, validNotes, validCreateTime);
+        var task = CreateCompletedTask();
 
         var idBeforeReopen = task.Id;
         var titleBeforeReopen = task.Title;
         var notesBeforeReopen = task.Notes;
-        var createdAtBeforeReopen = task.CreatedAt;        
-
-        task.Complete(validCompleteTime);
+        var createdAtBeforeReopen = task.CreatedAt;
 
         // When
         task.Reopen();
@@ -440,7 +417,7 @@ public class TaskItemTests
     private const string ValidTitle = "Buy milk";
     private const string ValidNotes = "From the store";
     private static readonly DateTimeOffset ValidCreateTime = new(2026, 3, 25, 7, 0, 0, TimeSpan.Zero);
-    private static readonly DateTimeOffset ValidCompleteTime = new(2026, 4, 20, 16, 20, 0, 0, TimeSpan.Zero);
+    private static readonly DateTimeOffset ValidCompleteTime = new(2026, 4, 20, 16, 20, 0, TimeSpan.Zero);
 
     private static TaskItem CreateValidTask(string title = ValidTitle, string? notes = ValidNotes, DateTimeOffset? createdAt = null)
     {
