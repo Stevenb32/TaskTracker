@@ -136,7 +136,7 @@ public class TaskItemTests
         act.Should().Throw<ArgumentException>().WithParameterName("notes");
     }
 
-    [Theory] // bank notes are normalized to null instead of being stored as empty text
+    [Theory] // notes are normalized to null instead of being stored as empty text
     [InlineData(null)] // null
     [InlineData("")] // empty
     [InlineData(" ")] // whitespace
@@ -213,7 +213,7 @@ public class TaskItemTests
     // ===============================================================================================================================
 
     [Fact] // valid inputs should produce a fully initialized active task
-    public void Create_WhenInputsAreValid_ReturnsTaskItem()
+    public void Create_WhenInputsAreValid_SetsAllProperties()
     {
         // Given        
         var validTitle = "Valid Title";
