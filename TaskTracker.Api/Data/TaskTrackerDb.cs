@@ -5,8 +5,7 @@ namespace TaskTracker.Api.Data;
 
 public class TaskTrackerDbContext : DbContext
 {
-    public TaskTrackerDbContext(DbContextOptions<TaskTrackerDbContext> options)
-        : base(options)
+    public TaskTrackerDbContext(DbContextOptions<TaskTrackerDbContext> options) : base(options)
     {
     }
 

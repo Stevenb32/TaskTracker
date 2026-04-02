@@ -10,14 +10,18 @@ public class TaskItem
 {
     #region Properties
     // core task state
-    public Guid Id { get; }
-    public string Title { get; } // required cannot be null or whitespace
-    public string? Notes { get; } // optional user provided notes
+    public Guid Id { get; private set; }
+    public string Title { get; private set; } = string.Empty; // required cannot be null or whitespace
+    public string? Notes { get; private set; } // optional user provided notes
     public TaskStatus Status { get; private set; } // set internally
-    public DateTimeOffset CreatedAt { get; }
+    public DateTimeOffset CreatedAt { get; private set; }
     public DateTimeOffset? CompletedAt { get; private set; } // null until the task is completed | if reopened set to null
     #endregion
 
+    // for EF Core
+    private TaskItem()
+    {
+    }
 
     // private constructor forces callers through Create so invariants stay enforced
     private TaskItem(Guid id, string title, string? notes, DateTimeOffset createdAt)
