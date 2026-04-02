@@ -20,6 +20,21 @@ public static class TaskItemEndpoints
             .WithName("GetTasks")
             .Produces<List<TaskItemResponse>>(StatusCodes.Status200OK);
 
+        group.MapGet("/{id:guid}", GetTaskById)
+            .WithName("GetTaskById")
+            .Produces<TaskItemResponse>(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status404NotFound);
+
+        group.MapPost("/{id:guid}/complete", CompleteTask)
+            .WithName("CompleteTask")
+            .Produces(StatusCodes.Status204NoContent)
+            .Produces(StatusCodes.Status404NotFound);
+
+        group.MapPost("/{id:guid}/reopen", ReopenTask)
+            .WithName("ReopenTask")
+            .Produces(StatusCodes.Status204NoContent)
+            .Produces(StatusCodes.Status404NotFound);
+
         return app;
     }
 
@@ -49,6 +64,50 @@ public static class TaskItemEndpoints
             .ToList();
 
         return Results.Ok(response);
+    }
+
+    private static async Task<IResult> GetTaskById(Guid id, TaskTrackerDbContext db)
+    {
+        var taskItem = await db.Tasks
+            .AsNoTracking()
+            .FirstOrDefaultAsync(t => t.Id == id);
+
+        if (taskItem is null)
+        {
+            return Results.NotFound();
+        }
+
+        return Results.Ok(ToResponse(taskItem));
+    }
+
+    private static async Task<IResult> CompleteTask(Guid id, TaskTrackerDbContext db)
+    {
+        var taskItem = await db.Tasks.FirstOrDefaultAsync(t => t.Id == id);
+
+        if (taskItem is null)
+        {
+            return Results.NotFound();
+        }
+
+        taskItem.Complete(DateTimeOffset.UtcNow);
+        await db.SaveChangesAsync();
+
+        return Results.Ok(ToResponse(taskItem));
+    }
+
+    private static async Task<IResult> ReopenTask(Guid id, TaskTrackerDbContext db)
+    {
+        var taskItem = await db.Tasks.FirstOrDefaultAsync(t => t.Id == id);
+
+        if (taskItem is null)
+        {
+            return Results.NotFound();
+        }
+
+        taskItem.Reopen();
+        await db.SaveChangesAsync();
+
+        return Results.Ok(ToResponse(taskItem));
     }
 
     private static TaskItemResponse ToResponse(TaskItem taskItem)
