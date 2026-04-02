@@ -27,17 +27,21 @@ public static class TaskItemEndpoints
 
         group.MapPost("/{id:guid}/complete", CompleteTask)
             .WithName("CompleteTask")
-            .Produces(StatusCodes.Status204NoContent)
+            .Produces<TaskItemResponse>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status404NotFound);
 
         group.MapPost("/{id:guid}/reopen", ReopenTask)
             .WithName("ReopenTask")
-            .Produces(StatusCodes.Status204NoContent)
+            .Produces<TaskItemResponse>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status404NotFound);
 
         return app;
     }
 
+    
+    // ===============================================================================================================================    
+    #region Endpoint Handlers
+    // ===============================================================================================================================    
     private static async Task<IResult> CreateTask(TaskItemCreateRequest request, TaskTrackerDbContext db)
     {
         var taskItem = TaskItem.Create(
@@ -45,7 +49,7 @@ public static class TaskItemEndpoints
             request.Notes,
             DateTimeOffset.UtcNow);
 
-        db.Tasks.Add(taskItem);
+        db.Tasks.Add(taskItem);        
         await db.SaveChangesAsync();
 
         var response = ToResponse(taskItem);
@@ -59,9 +63,9 @@ public static class TaskItemEndpoints
             .AsNoTracking()
             .ToListAsync();
 
-        var response = taskItems
-            .Select(ToResponse)
-            .ToList();
+            var response = taskItems
+                .Select(ToResponse)
+                .ToList();
 
         return Results.Ok(response);
     }
@@ -109,7 +113,9 @@ public static class TaskItemEndpoints
 
         return Results.Ok(ToResponse(taskItem));
     }
+    #endregion
 
+    // mapping Helper
     private static TaskItemResponse ToResponse(TaskItem taskItem)
     {
         return new TaskItemResponse
