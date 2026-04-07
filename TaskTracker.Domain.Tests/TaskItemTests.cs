@@ -2,7 +2,7 @@
 
 public class TaskItemTests
 {
-    // Test naming convention: MethodName_WhenCondition_ExpectedResult   
+    // MethodName_WhenCondition_ExpectedResult   
 
     // private readonly ITestOutputHelper _output;
     
