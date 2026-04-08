@@ -50,4 +50,14 @@ public class TaskTrackerWebApplicationFactory : WebApplicationFactory<Program>
         db.Tasks.Add(task);
         await db.SaveChangesAsync();
     }
+
+    public async Task<TaskItem?> GetTaskByIdAsync(Guid id)
+    {
+        using var scope = Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<TaskTrackerDbContext>();
+
+        return await db.Tasks.FirstOrDefaultAsync(t => t.Id == id);
+    }
+
+
 }

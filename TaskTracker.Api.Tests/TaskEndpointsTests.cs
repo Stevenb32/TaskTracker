@@ -104,7 +104,7 @@ public class TaskEndpointsTests : IClassFixture<TaskTrackerWebApplicationFactory
     }
 
     [Fact]
-    public async Task CreateTask_SetsInitialStatusToTodo()
+    public async Task CreateTask_SetsInitialStatusToActive()
     {
         // Given
         await _factory.ResetDatabaseAsync();
@@ -126,7 +126,37 @@ public class TaskEndpointsTests : IClassFixture<TaskTrackerWebApplicationFactory
         createdTask.Status.Should().Be("Active");
     }
 
-    // CreateTask_WithValidRequest_PersistsTask
+    [Fact]
+    public async Task CreateTask_WithValidRequest_PersistsTask()
+    {
+        // Given
+        await _factory.ResetDatabaseAsync();
+
+        var request = new TaskItemCreateRequest
+        {
+            Title = "Buy milk",
+            Notes = "From the store"
+        };
+
+        // When
+        var response = await _client.PostAsJsonAsync("/tasks", request);
+
+        // Then
+        response.StatusCode.Should().Be(HttpStatusCode.Created);
+
+        var createdTask = await response.Content.ReadFromJsonAsync<TaskItemResponse>();
+        createdTask.Should().NotBeNull();        
+
+        var savedTask = await _factory.GetTaskByIdAsync(createdTask.Id);
+
+        savedTask!.Id.Should().Be(createdTask.Id);
+        savedTask.Title.Should().Be(createdTask.Title);
+        savedTask.Notes.Should().Be(createdTask.Notes);
+        savedTask.Status.Should().Be(Domain.TaskStatus.Active);
+        savedTask.CompletedAt.Should().BeNull();
+    }
+
+
     // CreateTask_ResponseContainsCreatedTask
 
 
