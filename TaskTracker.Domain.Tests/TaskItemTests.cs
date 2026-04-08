@@ -25,7 +25,7 @@ public class TaskItemTests
         var validCreateTime = new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero);
         
         // When
-        Action act = () => TaskItem.Create(title, validNotes, validCreateTime);
+        Action act = () => TaskItem.Create(title!, validNotes, validCreateTime);
     
         // Then
         act.Should().Throw<ArgumentException>().WithParameterName("title");

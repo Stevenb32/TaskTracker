@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using TaskTracker.Api.Dtos;
 using TaskTracker.Domain;
 
-
 namespace TaskTracker.Api.Tests;
 
 public class TaskEndpointsTests : IClassFixture<TaskTrackerWebApplicationFactory>
@@ -21,10 +20,9 @@ public class TaskEndpointsTests : IClassFixture<TaskTrackerWebApplicationFactory
     }
 
 
-    // create tests
-
-    // Core tests
-    
+    // =============================================================================================================================== 
+    #region Create Tests
+    // =============================================================================================================================== 
     [Fact]
     public async Task CreateTask_WithValidRequest_ReturnsCreated()
     {
@@ -45,26 +43,166 @@ public class TaskEndpointsTests : IClassFixture<TaskTrackerWebApplicationFactory
 
         var createdTask = await response.Content.ReadFromJsonAsync<TaskItemResponse>();
         createdTask.Should().NotBeNull();
-        createdTask!.Title.Should().Be("Buy milk");
+        createdTask.Title.Should().Be("Buy milk");
         createdTask.Notes.Should().Be("From the store");
     }
 
+    [Theory]
+    [InlineData(1)]
+    [InlineData(50)]
+    [InlineData(100)]    
+    public async Task CreateTask_WhenTitleIs1To100Characters_ReturnsCreated(int titleLength)
+    {
+        // Given
+        await _factory.ResetDatabaseAsync();
 
+        var request = new TaskItemCreateRequest
+        {
+            Title = new string('a', titleLength),
+            Notes = "From the store"
+        };
+    
+        // When
+        var response = await _client.PostAsJsonAsync("/tasks", request);
 
+        // Then
+        response.StatusCode.Should().Be(HttpStatusCode.Created);
+
+        var createdTask = await response.Content.ReadFromJsonAsync<TaskItemResponse>();
+        createdTask.Should().NotBeNull();
+        createdTask.Title.Should().HaveLength(titleLength);
+    }
+
+    [Fact]
+    public async Task CreateTask_SetsCreatedDate()
+    {
+        // Given
+        await _factory.ResetDatabaseAsync();
+
+        var request = new TaskItemCreateRequest
+        {
+            Title = "Buy milk",
+            Notes = "From the store"
+        };
+
+        var timeBefore = DateTimeOffset.UtcNow;
+
+        // When
+        var response = await _client.PostAsJsonAsync("/tasks", request);
+
+        var timeAfter = DateTimeOffset.UtcNow;
+
+        // Then
+        response.StatusCode.Should().Be(HttpStatusCode.Created);
+
+        var createdTask = await response.Content.ReadFromJsonAsync<TaskItemResponse>();
+        createdTask.Should().NotBeNull();
+
+        createdTask.CreatedAt.Should().BeOnOrAfter(timeBefore);
+        createdTask.CreatedAt.Should().BeOnOrBefore(timeAfter);
+
+    }
+
+    [Fact]
+    public async Task CreateTask_SetsInitialStatusToTodo()
+    {
+        // Given
+        await _factory.ResetDatabaseAsync();
+
+        var request = new TaskItemCreateRequest
+        {
+            Title = "Buy milk",
+            Notes = "From the store"
+        };
+
+        // When
+        var response = await _client.PostAsJsonAsync("/tasks", request);
+
+        // Then
+        response.StatusCode.Should().Be(HttpStatusCode.Created);
+
+        var createdTask = await response.Content.ReadFromJsonAsync<TaskItemResponse>();
+        createdTask.Should().NotBeNull();
+        createdTask.Status.Should().Be("Active");
+    }
 
     // CreateTask_WithValidRequest_PersistsTask
     // CreateTask_ResponseContainsCreatedTask
 
 
-    // Validation tests
-    // CreateTask_WithEmptyTitle_ReturnsBadRequest
-    // CreateTask_WithInvalidPriority_ReturnsBadRequest
-    // CreateTask_WithMissingRequiredFields_ReturnsBadRequest
 
 
-    // Edge behavior
-    // CreateTask_SetsCreatedDate
-    // CreateTask_SetsInitialStatusToTodo
+
+
+
+
+    // Validation tests   
+    [Theory]
+    [InlineData(null)]  // null
+    [InlineData("")] // empty    
+    public async Task CreateTask_WhenTitleIsNullOrEmpty_ReturnsBadRequest(string? title)
+    {
+        // Given
+        await _factory.ResetDatabaseAsync();
+
+        var request = new TaskItemCreateRequest
+        {
+            Title = title!,
+            Notes = "Some note"
+        };
+
+        // When
+        var response = await _client.PostAsJsonAsync("/tasks", request);
+
+        // Then
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
+
+    [Theory]
+    [InlineData(101)]
+    [InlineData(150)]
+    [InlineData(300)]
+    public async Task CreateTask_WhenTitleExceeds100Characters_ReturnsBadRequest(int titleLength)
+    {
+        // Given
+        await _factory.ResetDatabaseAsync();
+
+        var request = new TaskItemCreateRequest
+        {
+            Title = new string('a', titleLength),
+            Notes = "From the store"
+        };
+    
+        // When
+        var response = await _client.PostAsJsonAsync("/tasks", request);
+
+        // Then
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
+
+    [Theory]
+    [InlineData(501)]
+    [InlineData(750)]
+    [InlineData(1000)]
+    public async Task CreateTask_WhenNotesExceeds500Characters_ReturnsBadRequest(int notesLength)
+    {
+        // Given
+        await _factory.ResetDatabaseAsync();
+
+        var request = new TaskItemCreateRequest
+        {
+            Title = "Buy milk",
+            Notes = new string('a', notesLength)
+        };
+    
+        // When
+        var response = await _client.PostAsJsonAsync("/tasks", request);
+
+        // Then
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
+    #endregion
+
 
 
 
@@ -156,6 +294,29 @@ public class TaskEndpointsTests : IClassFixture<TaskTrackerWebApplicationFactory
     // }
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     // complete tests
 
 
@@ -164,6 +325,42 @@ public class TaskEndpointsTests : IClassFixture<TaskTrackerWebApplicationFactory
     // CompleteTask_WhenTaskExists_SetsCompletedDate
     // CompleteTask_WhenTaskDoesNotExist_ReturnsNotFound
     // CompleteTask_WhenTaskAlreadyCompleted_DoesNotChangeState
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
     // reopen tests
