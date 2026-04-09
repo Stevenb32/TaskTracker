@@ -246,8 +246,6 @@ public class TaskEndpointsTests : IClassFixture<TaskTrackerWebApplicationFactory
     }
     #endregion
 
-
-
     // =============================================================================================================================== 
     #region Get Tests
     // =============================================================================================================================== 
@@ -268,36 +266,102 @@ public class TaskEndpointsTests : IClassFixture<TaskTrackerWebApplicationFactory
         tasks.Should().NotBeNull();
         tasks.Should().BeEmpty();       
     }
-    // GetTasks_WhenTasksExist_ReturnsOkWithTasks
 
+    [Fact]
+    public async Task GetTasks_WhenTasksExist_ReturnsOkWithTasks()
+    {
+        // Given
+        await _factory.ResetDatabaseAsync();
 
+        var task1 = TaskItem.Create("Buy milk", "From the store", new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero));
+        var task2 = TaskItem.Create("Walk dog", "Around the block", new DateTimeOffset(2026, 3, 25, 8, 0, 0, TimeSpan.Zero));
 
+        await _factory.AddTaskAsync(task1);
+        await _factory.AddTaskAsync(task2);
 
+        // When        
+        var response = await _client.GetAsync("/tasks");
 
+        // Then
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
 
+        var tasks = await response.Content.ReadFromJsonAsync<List<TaskItemResponse>>();
+        tasks.Should().NotBeNull();
+        tasks.Should().HaveCount(2);
 
-    // GetTaskById_WhenTaskExists_ReturnsOkWithTask
-    // GetTaskById_WhenTaskDoesNotExist_ReturnsNotFound
-    // GetTaskById_ReturnsCorrectTask
+        tasks.Should().Contain(t => t.Title == task1.Title && t.Notes == task1.Notes);
+        tasks.Should().Contain(t => t.Title == task2.Title && t.Notes == task2.Notes);
+    }
 
+    [Fact]
+    public async Task GetTaskById_WhenTaskExists_ReturnsOkWithTask()
+    {
+        // Given
+        await _factory.ResetDatabaseAsync();
+
+        var existingTask = TaskItem.Create("Buy milk", "From the store", new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero));       
+
+        await _factory.AddTaskAsync(existingTask);
+
+        // When        
+        var response = await _client.GetAsync($"/tasks/{existingTask.Id}");
+
+        // Then
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var responseTask = await response.Content.ReadFromJsonAsync<TaskItemResponse>();
+        responseTask.Should().NotBeNull();
+
+        responseTask.Id.Should().Be(existingTask.Id);
+        responseTask.Title.Should().Be(existingTask.Title);
+        responseTask.Notes.Should().Be(existingTask.Notes);
+    }
+
+    [Fact]
+    public async Task GetTaskById_WhenTaskDoesNotExist_ReturnsNotFound()
+    {
+        // Given
+        await _factory.ResetDatabaseAsync();        
+        
+        var nonExistentId = Guid.NewGuid();
+
+        // When        
+        var response = await _client.GetAsync($"/tasks/{nonExistentId}"); // search for GUID
+
+        // Then
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound);       
+    }
+
+    [Fact]
+    public async Task GetTaskById_ReturnsCorrectTask()
+    {
+        // Given
+        await _factory.ResetDatabaseAsync();
+
+        var task1 = TaskItem.Create("Buy milk", "From the store", new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero));
+        var task2 = TaskItem.Create("Walk dog", "Around the block", new DateTimeOffset(2026, 3, 25, 8, 0, 0, TimeSpan.Zero));
+
+        await _factory.AddTaskAsync(task1);
+        await _factory.AddTaskAsync(task2);
+
+        // When        
+        var response = await _client.GetAsync($"/tasks/{task1.Id}");
+
+        // Then
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var responseTask = await response.Content.ReadFromJsonAsync<TaskItemResponse>();
+        responseTask.Should().NotBeNull();
+
+        responseTask.Id.Should().Be(task1.Id);
+        responseTask.Title.Should().Be(task1.Title);
+        responseTask.Notes.Should().Be(task1.Notes);
+
+        responseTask.Id.Should().NotBe(task2.Id);
+        responseTask.Title.Should().NotBe(task2.Title);
+    }
 
     #endregion
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
     // =============================================================================================================================== 
@@ -307,9 +371,57 @@ public class TaskEndpointsTests : IClassFixture<TaskTrackerWebApplicationFactory
 
 
     // CompleteTask_WhenTaskExists_ReturnsOk
+
+
+
+
+
+
+
+
+
+
+
+
+
     // CompleteTask_WhenTaskExists_UpdatesStatusToDone
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     // CompleteTask_WhenTaskExists_SetsCompletedAt
+
+
+
+
+
+
+
+
+
+
     // CompleteTask_WhenTaskDoesNotExist_ReturnsNotFound
+
+
+
+
+
+
+
+
     // CompleteTask_WhenTaskAlreadyCompleted_DoesNotChangeState
 
 
@@ -346,9 +458,62 @@ public class TaskEndpointsTests : IClassFixture<TaskTrackerWebApplicationFactory
     // =============================================================================================================================== 
 
     // ReopenTask_WhenTaskExists_ReturnsOk
+
+
+
+
+
+
+
+
+
+
+
+
     // ReopenTask_WhenTaskExists_UpdatesStatusToActive
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     // ReopenTask_WhenTaskExists_ClearsCompletedAt
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     // ReopenTask_WhenTaskDoesNotExist_ReturnsNotFound
+
+
+
+
+
+
+
+
+
+
+
+
+
     // ReopenTask_WhenTaskIsNotCompleted_DoesNotChangeState
 
 
@@ -374,7 +539,33 @@ public class TaskEndpointsTests : IClassFixture<TaskTrackerWebApplicationFactory
     // =============================================================================================================================== 
     
     // CreateTask_ThenGetTasks_ReturnsCreatedTask
+
+
+
+
+
+
+
+
+
+
+
+
+
     // CompleteTask_ThenGetTaskById_ReturnsUpdatedStatus
+
+
+
+
+
+
+
+
+
+
+
+
+
     // ReopenTask_ThenGetTaskById_ReturnsUpdatedStatus
 
 
