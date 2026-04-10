@@ -44,9 +44,9 @@ public class TaskEndpointsTests : IClassFixture<TaskTrackerWebApplicationFactory
         var createdTask = await response.Content.ReadFromJsonAsync<TaskItemResponse>();
         createdTask.Should().NotBeNull();
         createdTask!.Id.Should().NotBeEmpty();
-        createdTask.Title.Should().Be("Buy milk");
-        createdTask.Notes.Should().Be("From the store");
-        createdTask.Status.Should().Be("Active");        
+        createdTask.Title.Should().Be(request.Title);
+        createdTask.Notes.Should().Be(request.Notes);
+        createdTask.Status.Should().Be(Domain.TaskStatus.Active.ToString());        
     }
 
     [Fact]
@@ -99,7 +99,7 @@ public class TaskEndpointsTests : IClassFixture<TaskTrackerWebApplicationFactory
 
         var createdTask = await response.Content.ReadFromJsonAsync<TaskItemResponse>();
         createdTask.Should().NotBeNull();
-        createdTask.Status.Should().Be("Active");
+        createdTask.Status.Should().Be(Domain.TaskStatus.Active.ToString());
     }
 
     [Fact]
@@ -367,48 +367,106 @@ public class TaskEndpointsTests : IClassFixture<TaskTrackerWebApplicationFactory
     // =============================================================================================================================== 
     #region Complete Tests
     // =============================================================================================================================== 
+
+    [Fact]
+    public async Task CompleteTask_WhenTaskExists_ReturnsOk()
+    {
+        // Given
+        await _factory.ResetDatabaseAsync();
+
+        var task = TaskItem.Create("Buy milk", "From the store", new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero));        
+
+        await _factory.AddTaskAsync(task);
+
+        // When        
+        var response = await _client.PostAsync($"/tasks/{task.Id}/complete", null);
+
+        // Then
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var responseTask = await response.Content.ReadFromJsonAsync<TaskItemResponse>();
+        responseTask.Should().NotBeNull();
+
+        responseTask.Id.Should().Be(task.Id);
+    }
+
+    [Fact]
+    public async Task CompleteTask_WhenTaskExists_UpdatesStatusToCompleted()
+    {
+        // Given
+        await _factory.ResetDatabaseAsync();
+
+        var task = TaskItem.Create("Buy milk", "From the store", new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero));        
+
+        await _factory.AddTaskAsync(task);
+
+        // When        
+        var response = await _client.PostAsync($"/tasks/{task.Id}/complete", null);
+
+        // Then
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var responseTask = await response.Content.ReadFromJsonAsync<TaskItemResponse>();
+        responseTask.Should().NotBeNull();
     
+        responseTask.Id.Should().Be(task.Id);
+        responseTask.Status.Should().Be(Domain.TaskStatus.Completed.ToString());
+    }
 
+    [Fact]
+    public async Task CompleteTask_WhenTaskExists_SetsCompletedAt()
+    {
+        // Given
+        await _factory.ResetDatabaseAsync();
 
-    // CompleteTask_WhenTaskExists_ReturnsOk
+        var task = TaskItem.Create("Buy milk", "From the store", new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero));                
 
+        await _factory.AddTaskAsync(task);        
 
+        // When        
+        var timeBefore = DateTimeOffset.UtcNow;
+        var response = await _client.PostAsync($"/tasks/{task.Id}/complete", null);
+        var timeAfter = DateTimeOffset.UtcNow;
 
+        // Then
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
 
+        var responseTask = await response.Content.ReadFromJsonAsync<TaskItemResponse>();
+        responseTask.Should().NotBeNull();
+        
+        responseTask.CompletedAt.Should().NotBeNull();
+        responseTask.CompletedAt.Should().BeOnOrAfter(timeBefore);
+        responseTask.CompletedAt.Should().BeOnOrBefore(timeAfter);       
+    }
 
+    [Fact]
+    public async Task CompleteTask_WhenTaskExists_PersistsCompletedState()
+    {
+        // Given
+        await _factory.ResetDatabaseAsync();
 
+        var task = TaskItem.Create("Buy milk", "From the store", new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero));        
 
+        await _factory.AddTaskAsync(task);
 
+        // When
+        var response = await _client.PostAsync($"/tasks/{task.Id}/complete", null);
 
+        // Then
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
 
+        var completedTask = await response.Content.ReadFromJsonAsync<TaskItemResponse>();
+        completedTask.Should().NotBeNull();
 
+        var savedTask = await _factory.GetTaskByIdAsync(task.Id);
 
+        savedTask.Should().NotBeNull();
+        savedTask.Id.Should().Be(task.Id);
+        savedTask.Status.Should().Be(Domain.TaskStatus.Completed);
+        savedTask.CompletedAt.Should().NotBeNull();
 
-    // CompleteTask_WhenTaskExists_UpdatesStatusToDone
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    // CompleteTask_WhenTaskExists_SetsCompletedAt
-
-
-
-
-
-
+        savedTask.Id.Should().Be(completedTask.Id);
+    }
 
 
 
