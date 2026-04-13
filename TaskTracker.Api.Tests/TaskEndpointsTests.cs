@@ -468,22 +468,57 @@ public class TaskEndpointsTests : IClassFixture<TaskTrackerWebApplicationFactory
         savedTask.Id.Should().Be(completedTask.Id);
     }
 
+    [Fact]
+    public async Task CompleteTask_WhenTaskDoesNotExist_ReturnsNotFound()
+    {
+        // Given
+        await _factory.ResetDatabaseAsync();
 
+        var nonExistentId = Guid.NewGuid();        
 
+        // When
+        var response = await _client.PostAsync($"/tasks/{nonExistentId}/complete", null);
 
-    // CompleteTask_WhenTaskDoesNotExist_ReturnsNotFound
+        // Then
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound);        
+    }
 
+    [Fact]
+    public async Task CompleteTask_WhenTaskAlreadyCompleted_DoesNotChangeState()
+    {
+        // Given
+        await _factory.ResetDatabaseAsync();
 
+        var task = TaskItem.Create("Buy milk", "From the store", new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero));
 
+        await _factory.AddTaskAsync(task);
 
+        var firstResponse = await _client.PostAsync($"/tasks/{task.Id}/complete", null);
+        firstResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
+        var firstCompleted = await firstResponse.Content.ReadFromJsonAsync<TaskItemResponse>();
+        firstCompleted.Should().NotBeNull();
 
+        // When
+        var secondResponse = await _client.PostAsync($"/tasks/{task.Id}/complete", null);
 
+        // Then
+        secondResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
-    // CompleteTask_WhenTaskAlreadyCompleted_DoesNotChangeState
+        var secondCompleted = await secondResponse.Content.ReadFromJsonAsync<TaskItemResponse>();
+        secondCompleted.Should().NotBeNull();
 
+        secondCompleted!.Id.Should().Be(firstCompleted!.Id);
+        secondCompleted.Title.Should().Be(firstCompleted.Title);
+        secondCompleted.Notes.Should().Be(firstCompleted.Notes);
+        secondCompleted.Status.Should().Be(firstCompleted.Status);
+        secondCompleted.CreatedAt.Should().Be(firstCompleted.CreatedAt);
+        secondCompleted.CompletedAt.Should().Be(firstCompleted.CompletedAt);
 
-
+        var savedTask = await _factory.GetTaskByIdAsync(task.Id);
+        savedTask.Should().NotBeNull();
+        savedTask!.CompletedAt.Should().Be(firstCompleted.CompletedAt);
+    }
 
     #endregion
 
@@ -491,32 +526,54 @@ public class TaskEndpointsTests : IClassFixture<TaskTrackerWebApplicationFactory
     #region Reopen Tests
     // =============================================================================================================================== 
 
-    // ReopenTask_WhenTaskExists_ReturnsOk
+    // 
+    [Fact]
+    public async Task ReopenTask_WhenTaskExists_ReturnsOk()
+    {
+        // Given
+        await _factory.ResetDatabaseAsync();
+
+        var task = TaskItem.Create("Buy milk", "From the store", new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero));        
+
+        await _factory.AddTaskAsync(task);
+
+        await _client.PostAsync($"/tasks/{task.Id}/complete", null);
+
+        // When        
+        var response = await _client.PostAsync($"/tasks/{task.Id}/reopen", null);
+
+        // Then
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var responseTask = await response.Content.ReadFromJsonAsync<TaskItemResponse>();
+        responseTask.Should().NotBeNull();
+        responseTask.Id.Should().Be(task.Id);
+    }
 
 
+    [Fact]
+    public async Task ReopenTask_WhenTaskExists_UpdatesStatusToActive()
+    {
+        // Given
+        await _factory.ResetDatabaseAsync();
 
+        var task = TaskItem.Create("Buy milk", "From the store", new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero));        
 
+        await _factory.AddTaskAsync(task);
 
+        await _client.PostAsync($"/tasks/{task.Id}/complete", null);
 
+        // When        
+        var response = await _client.PostAsync($"/tasks/{task.Id}/reopen", null);
 
+        // Then
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
 
-
-
-
-
-    // ReopenTask_WhenTaskExists_UpdatesStatusToActive
-
-
-
-
-
-
-
-
-
-
-
-
+        var responseTask = await response.Content.ReadFromJsonAsync<TaskItemResponse>();
+        responseTask.Should().NotBeNull();
+        responseTask.Id.Should().Be(task.Id);
+        responseTask.Status.Should().Be(Domain.TaskStatus.Active.ToString());
+    }
 
 
     // ReopenTask_WhenTaskExists_ClearsCompletedAt
