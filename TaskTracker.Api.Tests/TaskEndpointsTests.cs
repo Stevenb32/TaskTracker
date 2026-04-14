@@ -182,8 +182,9 @@ public class TaskEndpointsTests : IClassFixture<TaskTrackerWebApplicationFactory
 
     [Theory]
     [InlineData(null)] // null
-    [InlineData("")] // empty    
-    public async Task CreateTask_WhenTitleIsNullOrEmpty_ReturnsBadRequest(string? title)
+    [InlineData("")] // empty
+    [InlineData(" ")] // whitespace
+    public async Task CreateTask_WhenTitleIsNullEmptyOrWhitespace_ReturnsBadRequest(string? title)
     {
         // Given
         await _factory.ResetDatabaseAsync();
@@ -653,48 +654,93 @@ public class TaskEndpointsTests : IClassFixture<TaskTrackerWebApplicationFactory
     // =============================================================================================================================== 
     #region Integration Tests
     // =============================================================================================================================== 
-    
-    // CreateTask_ThenGetTasks_ReturnsCreatedTask
+    [Fact]
+    public async Task CreateTask_ThenGetTask_ReturnsCreatedTask()
+    {
+        // Given
+        await _factory.ResetDatabaseAsync();
 
+        var request = new TaskItemCreateRequest
+        {
+            Title = "Buy milk",
+            Notes = "From the store"
+        };
 
+        // When
+        var createResponse = await _client.PostAsJsonAsync("/tasks", request);
+        createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
 
+        var createdTask = await createResponse.Content.ReadFromJsonAsync<TaskItemResponse>();
+        createdTask.Should().NotBeNull();
 
+        var getByIdResponse = await _client.GetAsync($"/tasks/{createdTask.Id}");
+        
+        // Then
+        getByIdResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
+        var retrievedTask = await getByIdResponse.Content.ReadFromJsonAsync<TaskItemResponse>();
+        retrievedTask.Should().NotBeNull();
 
+        retrievedTask.Id.Should().Be(createdTask.Id);
+        retrievedTask.Title.Should().Be(createdTask.Title);
+        retrievedTask.Notes.Should().Be(createdTask.Notes);
+        retrievedTask.Status.Should().Be(createdTask.Status);
+        retrievedTask.CreatedAt.Should().Be(createdTask.CreatedAt);
+        retrievedTask.CompletedAt.Should().Be(createdTask.CompletedAt);
+    }
 
+    [Fact]
+    public async Task CompleteTask_ThenGetTaskById_ReturnsUpdatedStatus()
+    {
+        // Given
+        await _factory.ResetDatabaseAsync();
 
+        var task = TaskItem.Create("Buy milk", "From the store", new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero));
 
+        await _factory.AddTaskAsync(task);
 
+        await _client.PostAsync($"/tasks/{task.Id}/complete", null);
 
+        // When
+        var response = await _client.GetAsync($"/tasks/{task.Id}");
 
+        // Then
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
 
-    // CompleteTask_ThenGetTaskById_ReturnsUpdatedStatus
+        var retrievedTask = await response.Content.ReadFromJsonAsync<TaskItemResponse>();
+        retrievedTask.Should().NotBeNull();
 
+        retrievedTask.Id.Should().Be(task.Id);
+        retrievedTask.Status.Should().Be(Domain.TaskStatus.Completed.ToString());
+        retrievedTask.CompletedAt.Should().NotBeNull(); 
+    }
+ 
+    [Fact]
+    public async Task ReopenTask_ThenGetTaskById_ReturnsUpdatedStatus()
+    {
+        // Given
+        await _factory.ResetDatabaseAsync();
 
+        var task = TaskItem.Create("Buy milk", "From the store", new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero));
 
+        await _factory.AddTaskAsync(task);
 
+        await _client.PostAsync($"/tasks/{task.Id}/complete", null);
+        await _client.PostAsync($"/tasks/{task.Id}/reopen", null);
 
+        // When
+        
+        var response = await _client.GetAsync($"/tasks/{task.Id}");
 
+        // Then
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
 
+        var retrievedTask = await response.Content.ReadFromJsonAsync<TaskItemResponse>();
+        retrievedTask.Should().NotBeNull();
 
-
-
-
-
-
-    // ReopenTask_ThenGetTaskById_ReturnsUpdatedStatus
-
-
-
-
-
-
-
-
-
-
-
-
+        retrievedTask.Id.Should().Be(task.Id);
+        retrievedTask.Status.Should().Be(Domain.TaskStatus.Active.ToString());        
+    }
 
     #endregion
 }
