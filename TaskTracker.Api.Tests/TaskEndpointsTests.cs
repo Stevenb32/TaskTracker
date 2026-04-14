@@ -360,7 +360,6 @@ public class TaskEndpointsTests : IClassFixture<TaskTrackerWebApplicationFactory
         responseTask.Id.Should().NotBe(task2.Id);
         responseTask.Title.Should().NotBe(task2.Title);
     }
-
     #endregion
 
 
@@ -493,33 +492,37 @@ public class TaskEndpointsTests : IClassFixture<TaskTrackerWebApplicationFactory
 
         await _factory.AddTaskAsync(task);
 
-        var firstResponse = await _client.PostAsync($"/tasks/{task.Id}/complete", null);
-        firstResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        var firstCompleteResponse = await _client.PostAsync($"/tasks/{task.Id}/complete", null);
+        firstCompleteResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        var firstCompleted = await firstResponse.Content.ReadFromJsonAsync<TaskItemResponse>();
-        firstCompleted.Should().NotBeNull();
+        var firstCompletedTask = await firstCompleteResponse.Content.ReadFromJsonAsync<TaskItemResponse>();
+        firstCompletedTask.Should().NotBeNull();
 
         // When
-        var secondResponse = await _client.PostAsync($"/tasks/{task.Id}/complete", null);
+        var secondCompleteResponse = await _client.PostAsync($"/tasks/{task.Id}/complete", null);
 
         // Then
-        secondResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        secondCompleteResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        var secondCompleted = await secondResponse.Content.ReadFromJsonAsync<TaskItemResponse>();
-        secondCompleted.Should().NotBeNull();
+        var secondCompletedTask = await secondCompleteResponse.Content.ReadFromJsonAsync<TaskItemResponse>();
+        secondCompletedTask.Should().NotBeNull();
 
-        secondCompleted!.Id.Should().Be(firstCompleted!.Id);
-        secondCompleted.Title.Should().Be(firstCompleted.Title);
-        secondCompleted.Notes.Should().Be(firstCompleted.Notes);
-        secondCompleted.Status.Should().Be(firstCompleted.Status);
-        secondCompleted.CreatedAt.Should().Be(firstCompleted.CreatedAt);
-        secondCompleted.CompletedAt.Should().Be(firstCompleted.CompletedAt);
+        secondCompletedTask!.Id.Should().Be(firstCompletedTask!.Id);
+        secondCompletedTask.Title.Should().Be(firstCompletedTask.Title);
+        secondCompletedTask.Notes.Should().Be(firstCompletedTask.Notes);
+        secondCompletedTask.Status.Should().Be(firstCompletedTask.Status);
+        secondCompletedTask.CreatedAt.Should().Be(firstCompletedTask.CreatedAt);
+        secondCompletedTask.CompletedAt.Should().Be(firstCompletedTask.CompletedAt);
 
         var savedTask = await _factory.GetTaskByIdAsync(task.Id);
         savedTask.Should().NotBeNull();
-        savedTask!.CompletedAt.Should().Be(firstCompleted.CompletedAt);
+        savedTask!.Id.Should().Be(firstCompletedTask.Id);
+        savedTask.Title.Should().Be(firstCompletedTask.Title);
+        savedTask.Notes.Should().Be(firstCompletedTask.Notes);
+        savedTask.Status.Should().Be(Domain.TaskStatus.Completed);
+        savedTask.CreatedAt.Should().Be(firstCompletedTask.CreatedAt);
+        savedTask!.CompletedAt.Should().Be(firstCompletedTask.CompletedAt);
     }
-
     #endregion
 
     // =============================================================================================================================== 
@@ -550,7 +553,6 @@ public class TaskEndpointsTests : IClassFixture<TaskTrackerWebApplicationFactory
         responseTask.Id.Should().Be(task.Id);
     }
 
-
     [Fact]
     public async Task ReopenTask_WhenTaskExists_UpdatesStatusToActive()
     {
@@ -575,39 +577,76 @@ public class TaskEndpointsTests : IClassFixture<TaskTrackerWebApplicationFactory
         responseTask.Status.Should().Be(Domain.TaskStatus.Active.ToString());
     }
 
+    [Fact]
+    public async Task ReopenTask_WhenTaskExists_ClearsCompletedAt()
+    {
+        // Given
+        await _factory.ResetDatabaseAsync();
 
-    // ReopenTask_WhenTaskExists_ClearsCompletedAt
+        var task = TaskItem.Create("Buy milk", "From the store", new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero));        
 
+        await _factory.AddTaskAsync(task);
 
+        await _client.PostAsync($"/tasks/{task.Id}/complete", null);
 
+        // When        
+        var response = await _client.PostAsync($"/tasks/{task.Id}/reopen", null);
 
+        // Then
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
 
+        var responseTask = await response.Content.ReadFromJsonAsync<TaskItemResponse>();
+        responseTask.Should().NotBeNull();
+        responseTask.Id.Should().Be(task.Id);
+        responseTask.CompletedAt.Should().BeNull();
+    }
 
+    [Fact]
+    public async Task ReopenTask_WhenTaskDoesNotExist_ReturnsNotFound()
+    {
+        // Given
+        await _factory.ResetDatabaseAsync();
 
+        var nonExistentId = Guid.NewGuid();        
 
+        // When        
+        var response = await _client.PostAsync($"/tasks/{nonExistentId}/reopen", null);
 
+        // Then
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+    }
 
+    [Fact]
+    public async Task ReopenTask_WhenTaskIsNotCompleted_DoesNotChangeState()
+    {
+        // Given
+        await _factory.ResetDatabaseAsync();
 
+        var task = TaskItem.Create("Buy milk", "From the store", new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero));        
 
+        await _factory.AddTaskAsync(task);
 
+        // When        
+        var response = await _client.PostAsync($"/tasks/{task.Id}/reopen", null);
 
-    // ReopenTask_WhenTaskDoesNotExist_ReturnsNotFound
+        // Then
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
 
+        var responseTask = await response.Content.ReadFromJsonAsync<TaskItemResponse>();
+        responseTask.Should().NotBeNull();
+        responseTask!.Id.Should().Be(task.Id);
+        responseTask.Status.Should().Be(task.Status.ToString());
+        responseTask.CompletedAt.Should().Be(task.CompletedAt);
 
-
-
-
-
-
-
-
-
-
-
-
-    // ReopenTask_WhenTaskIsNotCompleted_DoesNotChangeState
-
-
+        var savedTask = await _factory.GetTaskByIdAsync(task.Id);
+        savedTask.Should().NotBeNull();
+        savedTask!.Id.Should().Be(task.Id);
+        savedTask.Title.Should().Be(task.Title);
+        savedTask.Notes.Should().Be(task.Notes);
+        savedTask.Status.Should().Be(task.Status);
+        savedTask.CreatedAt.Should().Be(task.CreatedAt);
+        savedTask.CompletedAt.Should().Be(task.CompletedAt);
+    }
     #endregion
 
 
@@ -649,9 +688,13 @@ public class TaskEndpointsTests : IClassFixture<TaskTrackerWebApplicationFactory
 
 
 
+
+
+
+
+
+
+
+
     #endregion
-
-
-
-
 }
