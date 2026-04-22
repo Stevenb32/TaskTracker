@@ -180,6 +180,31 @@ public class TaskEndpointsTests : IClassFixture<TaskTrackerWebApplicationFactory
         createdTask.Title.Should().HaveLength(titleLength);
     }
 
+    [Fact]
+    public async Task CreateTask_ReturnsLocationHeaderForCreatedResource()
+    {
+        // Given
+        await _factory.ResetDatabaseAsync();
+
+        var request = new TaskItemCreateRequest
+        {
+            Title = "Buy milk",
+            Notes = "From the store"
+        };
+
+        // When
+        var response = await _client.PostAsJsonAsync("/tasks", request);
+
+        // Then
+        response.StatusCode.Should().Be(HttpStatusCode.Created);
+        response.Headers.Location.Should().NotBeNull();
+
+        var createdTask = await response.Content.ReadFromJsonAsync<TaskItemResponse>();
+        createdTask.Should().NotBeNull();
+
+        response.Headers.Location.ToString().Should().Be($"/tasks/{createdTask!.Id}");
+    }
+
     [Theory]
     [InlineData(null)] // null
     [InlineData("")] // empty
@@ -742,5 +767,31 @@ public class TaskEndpointsTests : IClassFixture<TaskTrackerWebApplicationFactory
         retrievedTask.Status.Should().Be(Domain.TaskStatus.Active.ToString());        
     }
 
+    [Fact]
+    public async Task ReopenTask_ThenGetTaskById_ClearsCompletedAt()
+    {
+        // Given
+        await _factory.ResetDatabaseAsync();
+
+        var task = TaskItem.Create("Buy milk", "From the store", new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero));
+
+        await _factory.AddTaskAsync(task);
+
+        await _client.PostAsync($"/tasks/{task.Id}/complete", null);
+        await _client.PostAsync($"/tasks/{task.Id}/reopen", null);
+
+        // When
+        
+        var response = await _client.GetAsync($"/tasks/{task.Id}");
+
+        // Then
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var retrievedTask = await response.Content.ReadFromJsonAsync<TaskItemResponse>();
+        retrievedTask.Should().NotBeNull();
+
+        retrievedTask.Id.Should().Be(task.Id);
+        retrievedTask.CompletedAt.Should().BeNull();        
+    }
     #endregion
 }
