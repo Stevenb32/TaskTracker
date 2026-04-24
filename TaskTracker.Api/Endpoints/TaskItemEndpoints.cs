@@ -35,6 +35,11 @@ public static class TaskItemEndpoints
             .Produces<TaskItemResponse>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status404NotFound);
 
+        group.MapDelete("/{id:guid}", DeleteTask)
+            .WithName("DeleteTask")
+            .Produces(StatusCodes.Status204NoContent)
+            .Produces(StatusCodes.Status404NotFound);
+
         return app;
     }
 
@@ -112,6 +117,21 @@ public static class TaskItemEndpoints
         await db.SaveChangesAsync();
 
         return Results.Ok(ToResponse(taskItem));
+    }
+
+    private static async Task<IResult> DeleteTask(Guid id, TaskTrackerDbContext db)
+    {
+        var taskItem = await db.Tasks.FirstOrDefaultAsync(t => t.Id == id);
+
+        if (taskItem is null)
+        {
+            return Results.NotFound();
+        }
+
+        db.Tasks.Remove(taskItem);        
+        await db.SaveChangesAsync();
+
+        return Results.NoContent();
     }
     #endregion
 
