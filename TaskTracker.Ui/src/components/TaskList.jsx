@@ -1,6 +1,6 @@
 import TaskItem from './TaskItem.jsx';
 
-function TaskList({ tasks, onCompleteTask, onReopenTask }) {
+function TaskList({ tasks, onCompleteTask, onReopenTask, onDeleteTask }) {
   if (tasks.length === 0) {
     return <p className="mt-6">No tasks yet.</p>;
   }
@@ -15,6 +15,7 @@ function TaskList({ tasks, onCompleteTask, onReopenTask }) {
             task={task}
             onCompleteTask={onCompleteTask}
             onReopenTask={onReopenTask}
+            onDeleteTask={onDeleteTask}
           />
         ))}
       </ul>

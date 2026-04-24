@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { completeTask, createTask, getTasks, reopenTask } from './api/tasksApi.js';
+import { completeTask, createTask, deleteTask, getTasks, reopenTask } from './api/tasksApi.js';
 import TaskForm from './components/TaskForm.jsx';
 import TaskList from './components/TaskList.jsx';
 
@@ -60,6 +60,17 @@ function App() {
     }
   }
 
+  async function handleDeleteTask(id) {
+    setError('');
+
+    try {
+      await deleteTask(id);
+      await loadTasks();
+    } catch {
+      setError('Could not delete the task.');
+    }
+  }
+
   return (
     <main className="mx-auto max-w-3xl p-6">
       <h1 className="mb-6 text-2xl font-bold">Task Tracker</h1>
@@ -74,6 +85,7 @@ function App() {
           tasks={tasks}
           onCompleteTask={handleCompleteTask}
           onReopenTask={handleReopenTask}
+          onDeleteTask={handleDeleteTask}
         />
       )}
     </main>

@@ -35,3 +35,13 @@ export function reopenTask(id) {
     method: 'POST',
   });
 }
+
+export async function deleteTask(id) {
+  const response = await fetch(`${API_BASE_URL}/tasks/${id}`, {
+    method: 'DELETE',
+  });
+
+  if (!response.ok) {
+    throw new Error(`Request failed with status ${response.status}`);
+  }
+}

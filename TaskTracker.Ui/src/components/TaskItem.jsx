@@ -6,7 +6,7 @@ function formatDate(value) {
   return new Date(value).toLocaleString();
 }
 
-function TaskItem({ task, onCompleteTask, onReopenTask }) {
+function TaskItem({ task, onCompleteTask, onReopenTask, onDeleteTask }) {
   return (
     <li className="border p-4">
       <h3 className="font-semibold">{task.title}</h3>
@@ -30,25 +30,35 @@ function TaskItem({ task, onCompleteTask, onReopenTask }) {
         )}
       </dl>
 
-      {task.status === 'Active' && (
-        <button
-          type="button"
-          onClick={() => onCompleteTask(task.id)}
-          className="mt-3 border px-3 py-1"
-        >
-          Complete
-        </button>
-      )}
+      <div className="mt-3 flex gap-2">
+        {task.status === 'Active' && (
+          <button
+            type="button"
+            onClick={() => onCompleteTask(task.id)}
+            className="border px-3 py-1"
+          >
+            Complete
+          </button>
+        )}
 
-      {task.status === 'Completed' && (
+        {task.status === 'Completed' && (
+          <button
+            type="button"
+            onClick={() => onReopenTask(task.id)}
+            className="border px-3 py-1"
+          >
+            Reopen
+          </button>
+        )}
+
         <button
           type="button"
-          onClick={() => onReopenTask(task.id)}
-          className="mt-3 border px-3 py-1"
+          onClick={() => onDeleteTask(task.id)}
+          className="border px-3 py-1"
         >
-          Reopen
+          Delete
         </button>
-      )}
+      </div>
     </li>
   );
 }
