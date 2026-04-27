@@ -64,7 +64,7 @@ function TaskForm({ onCreateTask }) {
       <button
         type="submit"
         disabled={isSaving}
-        className="border px-3 py-1 disabled:opacity-50"
+        className="bg-blue-600 text-white px-3 py-1 border border-blue-700 hover:bg-blue-700 rounded"
       >
         {isSaving ? 'Saving...' : 'Create Task'}
       </button>

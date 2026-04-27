@@ -35,7 +35,7 @@ function TaskItem({ task, onCompleteTask, onReopenTask, onDeleteTask }) {
           <button
             type="button"
             onClick={() => onCompleteTask(task.id)}
-            className="border px-3 py-1"
+            className="bg-green-500 text-white px-3 py-1 border border-green-600 hover:bg-green-600 rounded"
           >
             Complete
           </button>
@@ -45,7 +45,7 @@ function TaskItem({ task, onCompleteTask, onReopenTask, onDeleteTask }) {
           <button
             type="button"
             onClick={() => onReopenTask(task.id)}
-            className="border px-3 py-1"
+            className="bg-yellow-500 text-black px-3 py-1 border border-yellow-600 hover:bg-yellow-600 rounded"
           >
             Reopen
           </button>
@@ -54,7 +54,7 @@ function TaskItem({ task, onCompleteTask, onReopenTask, onDeleteTask }) {
         <button
           type="button"
           onClick={() => onDeleteTask(task.id)}
-          className="border px-3 py-1"
+          className="bg-red-500 text-white px-3 py-1 border border-red-600 hover:bg-red-600 rounded"
         >
           Delete
         </button>
