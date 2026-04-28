@@ -9,11 +9,6 @@ public class TaskItemTests
     // ===============================================================================================================================
     #region Create Tests
     // ===============================================================================================================================
-
-    // ===============================================================================================================================
-    #region Create Title Tests    
-    // ===============================================================================================================================
-
     [Theory] // title required and cannot be null empty or whitespace
     [InlineData(null)] // null
     [InlineData("")] // empty
@@ -97,11 +92,6 @@ public class TaskItemTests
         // Then
         task.Title.Should().Be(new string('a', 100));
     }
-    #endregion // Create Title Tests
-
-    // ===============================================================================================================================    
-    #region Create Notes Tests
-    // ===============================================================================================================================
 
     [Fact] // guards against validating raw notes length instead of trimmed length
     public void Create_WhenTrimmedNotesLengthExceedsLimit_ThrowsArgumentException()
@@ -186,11 +176,6 @@ public class TaskItemTests
         // Then
         task.Notes.Should().Be(notesWithValidLength);
     }
-    #endregion // Create Notes Tests
-
-    // ===============================================================================================================================    
-    #region Create Time Tests
-    // ===============================================================================================================================
 
     [Fact] // create requires a real timestamp and rejects default value
     public void Create_WhenTimeIsDefault_ThrowsArgumentException()
@@ -206,11 +191,6 @@ public class TaskItemTests
         // Then
         act.Should().Throw<ArgumentException>().WithParameterName("now");
     }
-    #endregion // Create Time Tests
-
-    // ===============================================================================================================================    
-    #region Create Happy Path Tests
-    // ===============================================================================================================================
 
     [Fact] // valid inputs should produce a fully initialized active task
     public void Create_WhenInputsAreValid_SetsAllProperties()
@@ -231,6 +211,7 @@ public class TaskItemTests
         task.Status.Should().Be(TaskStatus.Active);
         task.CreatedAt.Should().Be(validCreateTime);
         task.CompletedAt.Should().BeNull();
+        task.UpdatedAt.Should().BeNull();
     }
 
     [Fact] // each created task should receive a unique identifier
@@ -250,17 +231,11 @@ public class TaskItemTests
         task2.Id.Should().NotBeEmpty();
         task1.Id.Should().NotBe(task2.Id);
     }
-    #endregion // Create Happy Path Tests
     #endregion // Create Tests
 
     // ===============================================================================================================================
     #region Complete Tests
     // ===============================================================================================================================
-
-    // ===============================================================================================================================    
-    #region Complete Time Tests   
-    // ===============================================================================================================================
-
     [Fact] // complete requires a real timestamp and rejects default value
     public void Complete_WhenTimeIsDefault_ThrowsArgumentException()
     {
@@ -274,11 +249,6 @@ public class TaskItemTests
         // Then
         act.Should().Throw<ArgumentException>().WithParameterName("now");
     }
-    #endregion // Complete Time Tests
-
-    // ===============================================================================================================================    
-    #region Complete Status Tests
-    // ===============================================================================================================================
 
     [Fact] // complete is idempotent once a task is already completed
     public void Complete_WhenTaskIsAlreadyCompleted_LeavesStateUnchanged()
@@ -297,6 +267,7 @@ public class TaskItemTests
         var createdAtBeforeSecondComplete = task.CreatedAt;
         var statusBeforeSecondComplete = task.Status;
         var completedAtBeforeSecondComplete = task.CompletedAt;
+        var updatedAtBeforeSecondComplete = task.UpdatedAt;
 
         // When        
         task.Complete(secondCompleteTime);
@@ -308,12 +279,8 @@ public class TaskItemTests
         task.Status.Should().Be(statusBeforeSecondComplete);
         task.CreatedAt.Should().Be(createdAtBeforeSecondComplete);       
         task.CompletedAt.Should().Be(completedAtBeforeSecondComplete);
+        task.UpdatedAt.Should().Be(updatedAtBeforeSecondComplete);
     }
-    #endregion // Complete Status Tests
-
-    // ===============================================================================================================================    
-    #region Complete Happy Path Tests
-    // ===============================================================================================================================
 
      [Fact] // completing an active task should only update completion-related fields
     public void Complete_WhenTaskIsActive_OnlyUpdatesCompletionFields()
@@ -341,24 +308,21 @@ public class TaskItemTests
         // updated fields
         task.Status.Should().Be(TaskStatus.Completed);
         task.CompletedAt.Should().Be(validCompleteTime);
+        task.UpdatedAt.Should().BeOnOrAfter(validCompleteTime);
     }
-    #endregion // Complete Happy Path Tests
     #endregion // Complete Tests
 
 
     // ===============================================================================================================================    
     #region Reopen Tests
     // ===============================================================================================================================
-
-    // ===============================================================================================================================    
-    #region Reopen Happy Path Tests
-    // ===============================================================================================================================
-
     [Fact] // reopen is a no-op unless the task is currently completed
     public void Reopen_WhenTaskStatusIsNotCompleted_LeavesStateUnchanged()
     {
         // Given
-        var task = CreateValidTask();        
+        var task = CreateValidTask();   
+
+        var validReopenTime = new DateTimeOffset(2026, 6, 7, 06, 07, 0, TimeSpan.Zero);
         
         var idBeforeReopen = task.Id;
         var titleBeforeReopen = task.Title;
@@ -366,9 +330,10 @@ public class TaskItemTests
         var createdAtBeforeReopen = task.CreatedAt;
         var statusBeforeReopen = task.Status;
         var completedAtBeforeReopen = task.CompletedAt;
+        var updatedAtBeforeReopen = task.UpdatedAt;
 
         // When        
-        task.Reopen();
+        task.Reopen(validReopenTime);
     
         // Then
         task.Id.Should().Be(idBeforeReopen);
@@ -377,6 +342,7 @@ public class TaskItemTests
         task.Status.Should().Be(statusBeforeReopen);        
         task.CreatedAt.Should().Be(createdAtBeforeReopen);       
         task.CompletedAt.Should().Be(completedAtBeforeReopen);
+        task.UpdatedAt.Should().Be(updatedAtBeforeReopen);
     }
 
     [Fact] // reopening a completed task should only reset completion-related fields
@@ -385,13 +351,15 @@ public class TaskItemTests
         // Given
         var task = CreateCompletedTask();
 
+        var validReopenTime = new DateTimeOffset(2026, 6, 7, 06, 07, 0, TimeSpan.Zero);
+
         var idBeforeReopen = task.Id;
         var titleBeforeReopen = task.Title;
         var notesBeforeReopen = task.Notes;
         var createdAtBeforeReopen = task.CreatedAt;
 
         // When
-        task.Reopen();
+        task.Reopen(validReopenTime);
     
         // Then
 
@@ -404,9 +372,90 @@ public class TaskItemTests
         // updated fields
         task.Status.Should().Be(TaskStatus.Active);
         task.CompletedAt.Should().BeNull();
+        task.UpdatedAt.Should().BeOnOrAfter(validReopenTime);
     }
-    #endregion // Reopen Happy Path Tests
+    
+    [Fact]
+    public void Reopen_WhenTimeIsDefault_ThrowsArgumentException()
+    {
+        // Given
+        var task = CreateCompletedTask();
+        var defaultTime = default(DateTimeOffset);
+
+        // When
+        var act = () => task.Reopen(defaultTime);
+
+        // Then
+        act.Should().Throw<ArgumentException>().WithParameterName("now");
+    }
     #endregion // #region Reopen Tests
+
+
+    // ===============================================================================================================================    
+    #region UpdateDetails Tests
+    // ===============================================================================================================================
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    #endregion
 
     #region Helper Methods
     // ===============================================================================================================================
@@ -417,7 +466,7 @@ public class TaskItemTests
     private const string ValidTitle = "Buy milk";
     private const string ValidNotes = "From the store";
     private static readonly DateTimeOffset ValidCreateTime = new(2026, 3, 25, 7, 0, 0, TimeSpan.Zero);
-    private static readonly DateTimeOffset ValidCompleteTime = new(2026, 4, 20, 16, 20, 0, TimeSpan.Zero);
+    private static readonly DateTimeOffset ValidCompleteTime = new(2026, 4, 20, 16, 20, 0, TimeSpan.Zero);    
 
     private static TaskItem CreateValidTask(string title = ValidTitle, string? notes = ValidNotes, DateTimeOffset? createdAt = null)
     {

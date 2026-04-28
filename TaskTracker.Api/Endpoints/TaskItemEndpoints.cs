@@ -113,7 +113,7 @@ public static class TaskItemEndpoints
             return Results.NotFound();
         }
 
-        taskItem.Reopen();
+        taskItem.Reopen(DateTimeOffset.UtcNow);
         await db.SaveChangesAsync();
 
         return Results.Ok(ToResponse(taskItem));
