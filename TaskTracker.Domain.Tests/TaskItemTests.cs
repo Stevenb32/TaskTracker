@@ -9,10 +9,26 @@ public class TaskItemTests
     // ===============================================================================================================================
     #region Create Tests
     // ===============================================================================================================================
+    [Fact] // create requires a real timestamp and rejects default value
+    public void Create_WhenTimeIsDefault_ThrowsArgumentException()
+    {
+        // Given
+        var validTitle = "Valid Title";
+        var validNotes = "Valid Notes";
+        var defaultTime = default(DateTimeOffset);
+    
+        // When
+        Action act = () => TaskItem.Create(validTitle, validNotes, defaultTime);
+    
+        // Then
+        act.Should().Throw<ArgumentException>().WithParameterName("now");
+    }
+
     [Theory] // title required and cannot be null empty or whitespace
     [InlineData(null)] // null
     [InlineData("")] // empty
     [InlineData(" ")] // whitespace
+    [InlineData("     ")] // moar whitespaces
     public void Create_WhenTitleIsNullEmptyOrWhitespace_ThrowsArgumentException(string? title)
     {
         // Given           
@@ -177,20 +193,7 @@ public class TaskItemTests
         task.Notes.Should().Be(notesWithValidLength);
     }
 
-    [Fact] // create requires a real timestamp and rejects default value
-    public void Create_WhenTimeIsDefault_ThrowsArgumentException()
-    {
-        // Given
-        var validTitle = "Valid Title";
-        var validNotes = "Valid Notes";
-        var defaultTime = default(DateTimeOffset);
     
-        // When
-        Action act = () => TaskItem.Create(validTitle, validNotes, defaultTime);
-    
-        // Then
-        act.Should().Throw<ArgumentException>().WithParameterName("now");
-    }
 
     [Fact] // valid inputs should produce a fully initialized active task
     public void Create_WhenInputsAreValid_SetsAllProperties()
@@ -236,20 +239,6 @@ public class TaskItemTests
     // ===============================================================================================================================
     #region Complete Tests
     // ===============================================================================================================================
-    [Fact] // complete requires a real timestamp and rejects default value
-    public void Complete_WhenTimeIsDefault_ThrowsArgumentException()
-    {
-        // Given
-        var task = CreateValidTask();        
-        var defaultTime = default(DateTimeOffset);       
-    
-        // When        
-        Action act = () => task.Complete(defaultTime);
-    
-        // Then
-        act.Should().Throw<ArgumentException>().WithParameterName("now");
-    }
-
     [Fact] // complete is idempotent once a task is already completed
     public void Complete_WhenTaskIsAlreadyCompleted_LeavesStateUnchanged()
     {
@@ -282,6 +271,20 @@ public class TaskItemTests
         task.UpdatedAt.Should().Be(updatedAtBeforeSecondComplete);
     }
 
+    [Fact] // complete requires a real timestamp and rejects default value
+    public void Complete_WhenTimeIsDefault_ThrowsArgumentException()
+    {
+        // Given
+        var task = CreateValidTask();        
+        var defaultTime = default(DateTimeOffset);       
+    
+        // When        
+        Action act = () => task.Complete(defaultTime);
+    
+        // Then
+        act.Should().Throw<ArgumentException>().WithParameterName("now");
+    }
+
      [Fact] // completing an active task should only update completion-related fields
     public void Complete_WhenTaskIsActive_OnlyUpdatesCompletionFields()
     {
@@ -308,7 +311,7 @@ public class TaskItemTests
         // updated fields
         task.Status.Should().Be(TaskStatus.Completed);
         task.CompletedAt.Should().Be(validCompleteTime);
-        task.UpdatedAt.Should().BeOnOrAfter(validCompleteTime);
+        task.UpdatedAt.Should().Be(validCompleteTime);
     }
     #endregion // Complete Tests
 
@@ -345,6 +348,20 @@ public class TaskItemTests
         task.UpdatedAt.Should().Be(updatedAtBeforeReopen);
     }
 
+    [Fact]
+    public void Reopen_WhenTimeIsDefault_ThrowsArgumentException()
+    {
+        // Given
+        var task = CreateCompletedTask();
+        var defaultTime = default(DateTimeOffset);
+
+        // When
+        var act = () => task.Reopen(defaultTime);
+
+        // Then
+        act.Should().Throw<ArgumentException>().WithParameterName("now");
+    }
+
     [Fact] // reopening a completed task should only reset completion-related fields
     public void Reopen_WhenTaskStatusCompleted_OnlyUpdatesReopenFields()
     {
@@ -372,21 +389,7 @@ public class TaskItemTests
         // updated fields
         task.Status.Should().Be(TaskStatus.Active);
         task.CompletedAt.Should().BeNull();
-        task.UpdatedAt.Should().BeOnOrAfter(validReopenTime);
-    }
-    
-    [Fact]
-    public void Reopen_WhenTimeIsDefault_ThrowsArgumentException()
-    {
-        // Given
-        var task = CreateCompletedTask();
-        var defaultTime = default(DateTimeOffset);
-
-        // When
-        var act = () => task.Reopen(defaultTime);
-
-        // Then
-        act.Should().Throw<ArgumentException>().WithParameterName("now");
+        task.UpdatedAt.Should().Be(validReopenTime);
     }
     #endregion // #region Reopen Tests
 
@@ -394,6 +397,64 @@ public class TaskItemTests
     // ===============================================================================================================================    
     #region UpdateDetails Tests
     // ===============================================================================================================================
+
+    [Fact] // update requires a real timestamp and rejects default value
+    public void UpdateDetails_WhenTimeIsDefault_ThrowsArgumentException()
+    {
+        // Given
+        var task = CreateValidTask();
+
+        var updatedTitle = "Updated Title";
+        var updatedNotes = "Updated Notes";
+        var defaultTime = default(DateTimeOffset);
+    
+        // When
+        Action act = () => task.UpdateDetails(updatedTitle, updatedNotes, defaultTime);
+    
+        // Then
+        act.Should().Throw<ArgumentException>().WithParameterName("now");
+    }
+
+    [Theory] // title required and cannot be null empty or whitespace
+    [InlineData(null)] // null
+    [InlineData("")] // empty
+    [InlineData(" ")] // whitespace
+    [InlineData("     ")] // moar whitespaces  
+    public void UpdateDetails_WhenTitleIsNullEmptyOrWhitespace_ThrowsArgumentException(string? title)
+    {
+        // Given           
+        var task = CreateValidTask();
+        
+        // When
+        Action act = () => task.UpdateDetails(title!, ValidNotes, ValidUpdateTime);
+    
+        // Then
+        act.Should().Throw<ArgumentException>().WithParameterName("title");
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    // UpdateDetails_WhenTitleExceedsLimit_ThrowsArgumentException
+    // UpdateDetails_WhenNotesExceedsLimit_ThrowsArgumentException
+    // UpdateDetails_WithValidTitleAndNotes_UpdatesTask
+    // UpdateDetails_WithValidTitleAndNotes_SetsUpdatedAt
+    // UpdateDetails_WithValidTitleAndNotes_DoesNotChangeIdCreatedAtStatusOrCompletedAt
+    // UpdateDetails_WithTitleAndNotesHavingSpaces_TrimsTitleAndNotes
+    // UpdateDetails_WithNullNotes_ClearsNotes
+    // UpdateDetails_WithEmptyOrWhitespaceNotes_SetsNotesToNull
+
 
 
 
@@ -467,6 +528,7 @@ public class TaskItemTests
     private const string ValidNotes = "From the store";
     private static readonly DateTimeOffset ValidCreateTime = new(2026, 3, 25, 7, 0, 0, TimeSpan.Zero);
     private static readonly DateTimeOffset ValidCompleteTime = new(2026, 4, 20, 16, 20, 0, TimeSpan.Zero);    
+    private static readonly DateTimeOffset ValidUpdateTime = new(2026, 6, 7, 06, 07, 0, TimeSpan.Zero);
 
     private static TaskItem CreateValidTask(string title = ValidTitle, string? notes = ValidNotes, DateTimeOffset? createdAt = null)
     {

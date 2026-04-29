@@ -83,9 +83,17 @@ public class TaskItem
     {
         ValidateNow(now);
 
-        Title = ValidateAndNormalizeTitle(title);
-        Notes = ValidateAndNormalizeNotes(notes);
+        var newTitle = ValidateAndNormalizeTitle(title);
+        var newNotes = ValidateAndNormalizeNotes(notes);
 
+        // idempotent: updating with identical values results in no state change
+        if (Title == newTitle && Notes == newNotes)
+        {
+            return;
+        }
+
+        Title = newTitle;
+        Notes = newNotes;
         UpdatedAt = now;
     }
 
