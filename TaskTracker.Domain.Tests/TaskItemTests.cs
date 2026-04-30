@@ -240,7 +240,7 @@ public class TaskItemTests
     #region Complete Tests
     // ===============================================================================================================================
     [Fact] // complete is idempotent once a task is already completed
-    public void Complete_WhenTaskIsAlreadyCompleted_LeavesStateUnchanged()
+    public void Complete_WhenTaskIsAlreadyCompleted_DoesNotModifyState()
     {
         // Given        
         var task = CreateValidTask();
@@ -253,8 +253,8 @@ public class TaskItemTests
         var idBeforeSecondComplete = task.Id;
         var titleBeforeSecondComplete = task.Title;
         var notesBeforeSecondComplete = task.Notes;
-        var createdAtBeforeSecondComplete = task.CreatedAt;
         var statusBeforeSecondComplete = task.Status;
+        var createdAtBeforeSecondComplete = task.CreatedAt;        
         var completedAtBeforeSecondComplete = task.CompletedAt;
         var updatedAtBeforeSecondComplete = task.UpdatedAt;
 
@@ -432,6 +432,132 @@ public class TaskItemTests
         act.Should().Throw<ArgumentException>().WithParameterName("title");
     }
 
+    [Fact] // guards against validating raw title length instead of trimmed length
+    public void UpdateDetails_WhenTrimmedTitleLengthExceedsLimit_ThrowsArgumentException()
+    {
+        // Given
+        var task = CreateValidTask();
+        
+        var invalidTitleLengthAfterTrim = "   " + new string('a', 101) + "   ";
+        var validNotes = "notes";
+        var validUpdatedAtTime = new DateTimeOffset(2026, 6, 07, 06, 07, 0, TimeSpan.Zero);
+
+        // When
+        Action act = () => task.UpdateDetails(invalidTitleLengthAfterTrim, validNotes, validUpdatedAtTime);
+
+        // Then
+        act.Should().Throw<ArgumentException>().WithParameterName("title");
+    }
+
+    [Theory] // title must not exceed 100 characters after normalization
+    [InlineData(101)]
+    [InlineData(150)]
+    [InlineData(300)]
+    public void UpdateDetails_WhenTitleLengthExceedsLimit_ThrowsArgumentException(int titleLength)
+    {
+        // Given
+
+        var task = CreateValidTask();
+
+        var titleWithInvalidLength = new string('a', titleLength);
+        var validNotes = "From the store";
+        var validUpdatedAtTime = new DateTimeOffset(2026, 6, 07, 06, 07, 0, TimeSpan.Zero);
+
+        // When
+        Action act = () => task.UpdateDetails(titleWithInvalidLength, validNotes, validUpdatedAtTime);
+
+        // Then
+        act.Should().Throw<ArgumentException>().WithParameterName("title");
+    }
+
+    [Fact] // guards against validating raw notes length instead of trimmed length
+    public void UpdateDetails_WhenTrimmedNotesLengthExceedsLimit_ThrowsArgumentException()
+    {
+        // Given
+        var task = CreateValidTask();
+
+        var validUpdatedTitle = "Buy 2 milk";
+        var invalidNotesLengthAfterTrim = "   " + new string('a', 501) + "   ";
+        var validUpdatedAtTime = new DateTimeOffset(2026, 6, 07, 06, 07, 0, TimeSpan.Zero);
+
+
+        // When
+        Action act = () => task.UpdateDetails(validUpdatedTitle, invalidNotesLengthAfterTrim, validUpdatedAtTime);
+
+        // Then
+        act.Should().Throw<ArgumentException>().WithParameterName("notes");
+    }
+
+    [Theory] // notes must not exceed 500 characters after normalization
+    [InlineData(501)]
+    [InlineData(750)]
+    [InlineData(1000)]
+    public void UpdateDetails_WhenNotesLengthExceedsLimit_ThrowsArgumentException(int notesLength)
+    {
+        // Given
+        var task = CreateValidTask();
+
+        var validUpdatedTitle = "Buy 2 milk";
+        var notesWithInvalidLength = new string('a', notesLength);        
+        var validUpdatedAtTime = new DateTimeOffset(2026, 6, 07, 06, 07, 0, TimeSpan.Zero);
+
+        // When
+        Action act = () => TaskItem.Create(validUpdatedTitle, notesWithInvalidLength, validUpdatedAtTime);
+
+        // Then
+        act.Should().Throw<ArgumentException>().WithParameterName("notes");
+    }
+
+    [Theory] // notes are normalized to null instead of being stored as empty text
+    [InlineData(null)] // null
+    [InlineData("")] // empty
+    [InlineData(" ")] // whitespace
+    [InlineData("     ")] // moar whitespaces
+    public void UpdateDetails_WhenNotesIsNullEmptyOrWhitespace_SetsNotesToNull(string? notes)
+    {
+        // Given  
+        var task = CreateValidTask();
+
+        var validUpdatedTitle = "Buy 2 milk";        
+        var validUpdatedAtTime = new DateTimeOffset(2026, 6, 07, 06, 07, 0, TimeSpan.Zero);
+        
+        // When
+        task.UpdateDetails(validUpdatedTitle, notes, validUpdatedAtTime);
+    
+        // Then
+        task.Notes.Should().BeNull();
+    }
+
+    [Fact]
+    public void UpdateDetails_WhenTitleAndNotesAreUnchanged_DoesNotModifyState()
+    {
+        // Given
+        var task = CreateValidTask();
+
+        string unchnagedTitle = task.Title;
+        string unchangedNotes = task.Notes!;
+        var validUpdatedAtTime = new DateTimeOffset(2026, 6, 07, 06, 07, 0, TimeSpan.Zero);        
+
+        var idBeforeUpdateDetails = task.Id;
+        var titleBeforeUpdateDetails = task.Title;
+        var notesUpdateDetails = task.Notes;
+        var statusUpdateDetails = task.Status;
+        var createdAtUpdateDetails = task.CreatedAt;        
+        var completedAtUpdateDetails = task.CompletedAt;
+        var updatedAtUpdateDetails = task.UpdatedAt;
+    
+        // When
+        task.UpdateDetails(unchnagedTitle, unchangedNotes, validUpdatedAtTime);
+    
+        // Then
+        task.Id.Should().Be(idBeforeUpdateDetails);
+        task.Title.Should().Be(titleBeforeUpdateDetails);
+        task.Notes.Should().Be(notesUpdateDetails);
+        task.Status.Should().Be(statusUpdateDetails);
+        task.CreatedAt.Should().Be(createdAtUpdateDetails);       
+        task.CompletedAt.Should().Be(completedAtUpdateDetails);
+        task.UpdatedAt.Should().Be(updatedAtUpdateDetails);
+    }
 
 
 
@@ -446,14 +572,21 @@ public class TaskItemTests
 
 
 
-    // UpdateDetails_WhenTitleExceedsLimit_ThrowsArgumentException
-    // UpdateDetails_WhenNotesExceedsLimit_ThrowsArgumentException
+
+
+
+
+
     // UpdateDetails_WithValidTitleAndNotes_UpdatesTask
     // UpdateDetails_WithValidTitleAndNotes_SetsUpdatedAt
     // UpdateDetails_WithValidTitleAndNotes_DoesNotChangeIdCreatedAtStatusOrCompletedAt
     // UpdateDetails_WithTitleAndNotesHavingSpaces_TrimsTitleAndNotes
+
+    // UpdateDetails_WhenNotesExceedsLimit_ThrowsArgumentException    
     // UpdateDetails_WithNullNotes_ClearsNotes
     // UpdateDetails_WithEmptyOrWhitespaceNotes_SetsNotesToNull
+
+    // UdateDetails_WhenTitleAndNotesAreUnchanged_DoesNotUpdateUpdatedAt
 
 
 
