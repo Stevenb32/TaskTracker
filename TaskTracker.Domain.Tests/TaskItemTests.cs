@@ -193,8 +193,6 @@ public class TaskItemTests
         task.Notes.Should().Be(notesWithValidLength);
     }
 
-    
-
     [Fact] // valid inputs should produce a fully initialized active task
     public void Create_WhenInputsAreValid_SetsAllProperties()
     {
@@ -239,6 +237,20 @@ public class TaskItemTests
     // ===============================================================================================================================
     #region Complete Tests
     // ===============================================================================================================================
+    [Fact] // complete requires a real timestamp and rejects default value
+    public void Complete_WhenTimeIsDefault_ThrowsArgumentException()
+    {
+        // Given
+        var task = CreateValidTask();        
+        var defaultTime = default(DateTimeOffset);       
+    
+        // When        
+        Action act = () => task.Complete(defaultTime);
+    
+        // Then
+        act.Should().Throw<ArgumentException>().WithParameterName("now");
+    }
+
     [Fact] // complete is idempotent once a task is already completed
     public void Complete_WhenTaskIsAlreadyCompleted_DoesNotModifyState()
     {
@@ -271,20 +283,6 @@ public class TaskItemTests
         task.UpdatedAt.Should().Be(updatedAtBeforeSecondComplete);
     }
 
-    [Fact] // complete requires a real timestamp and rejects default value
-    public void Complete_WhenTimeIsDefault_ThrowsArgumentException()
-    {
-        // Given
-        var task = CreateValidTask();        
-        var defaultTime = default(DateTimeOffset);       
-    
-        // When        
-        Action act = () => task.Complete(defaultTime);
-    
-        // Then
-        act.Should().Throw<ArgumentException>().WithParameterName("now");
-    }
-
      [Fact] // completing an active task should only update completion-related fields
     public void Complete_WhenTaskIsActive_OnlyUpdatesCompletionFields()
     {
@@ -315,10 +313,23 @@ public class TaskItemTests
     }
     #endregion // Complete Tests
 
-
     // ===============================================================================================================================    
     #region Reopen Tests
     // ===============================================================================================================================
+    [Fact]
+    public void Reopen_WhenTimeIsDefault_ThrowsArgumentException()
+    {
+        // Given
+        var task = CreateCompletedTask();
+        var defaultTime = default(DateTimeOffset);
+
+        // When
+        var act = () => task.Reopen(defaultTime);
+
+        // Then
+        act.Should().Throw<ArgumentException>().WithParameterName("now");
+    }
+
     [Fact] // reopen is a no-op unless the task is currently completed
     public void Reopen_WhenTaskStatusIsNotCompleted_LeavesStateUnchanged()
     {
@@ -346,20 +357,6 @@ public class TaskItemTests
         task.CreatedAt.Should().Be(createdAtBeforeReopen);       
         task.CompletedAt.Should().Be(completedAtBeforeReopen);
         task.UpdatedAt.Should().Be(updatedAtBeforeReopen);
-    }
-
-    [Fact]
-    public void Reopen_WhenTimeIsDefault_ThrowsArgumentException()
-    {
-        // Given
-        var task = CreateCompletedTask();
-        var defaultTime = default(DateTimeOffset);
-
-        // When
-        var act = () => task.Reopen(defaultTime);
-
-        // Then
-        act.Should().Throw<ArgumentException>().WithParameterName("now");
     }
 
     [Fact] // reopening a completed task should only reset completion-related fields
@@ -392,7 +389,6 @@ public class TaskItemTests
         task.UpdatedAt.Should().Be(validReopenTime);
     }
     #endregion // #region Reopen Tests
-
 
     // ===============================================================================================================================    
     #region UpdateDetails Tests
@@ -559,95 +555,125 @@ public class TaskItemTests
         task.UpdatedAt.Should().Be(updatedAtUpdateDetails);
     }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    // UpdateDetails_WithValidTitleAndNotes_UpdatesTask
-    // UpdateDetails_WithValidTitleAndNotes_SetsUpdatedAt
-    // UpdateDetails_WithValidTitleAndNotes_DoesNotChangeIdCreatedAtStatusOrCompletedAt
-    // UpdateDetails_WithTitleAndNotesHavingSpaces_TrimsTitleAndNotes
-
-    // UpdateDetails_WhenNotesExceedsLimit_ThrowsArgumentException    
-    // UpdateDetails_WithNullNotes_ClearsNotes
-    // UpdateDetails_WithEmptyOrWhitespaceNotes_SetsNotesToNull
-
-    // UdateDetails_WhenTitleAndNotesAreUnchanged_DoesNotUpdateUpdatedAt
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    [Theory] // title lengths within the allowed limit should be accepted
+    [InlineData(1)]
+    [InlineData(50)]
+    [InlineData(100)]
+    public void UpdateDetails_WhenTitleLengthIsWithinLimit_SetsTitle(int titleLength)
+    {
+        // Given
+        var task = CreateValidTask();
+
+        var updatedValidTitle = new string('a', titleLength);
+        var validNotes = "From the store";
+        var validUpdatedAtTime = new DateTimeOffset(2026, 6, 07, 06, 07, 0, TimeSpan.Zero);  
+
+        // When
+        task.UpdateDetails(updatedValidTitle, validNotes, validUpdatedAtTime);
+
+        // Then
+        task.Title.Should().Be(updatedValidTitle);
+    }
+
+    [Fact] // ensures trimming occurs before storing and validating title length
+    public void UpdateDetails_WhenTitleHasSpacesButTrimmedLengthIs100_SetsTrimmedTitle()
+    {
+        // Given
+        var task = CreateValidTask();
+
+        var updatedValidTitle = "   " + new string('a', 100) + "   ";
+        var validNotes = "From the store";
+        var validUpdatedAtTime = new DateTimeOffset(2026, 6, 07, 06, 07, 0, TimeSpan.Zero);  
+
+        // When
+        task.UpdateDetails(updatedValidTitle, validNotes, validUpdatedAtTime);
+
+        // Then
+        task.Title.Should().Be(new string('a', 100));
+    }
+
+    [Fact] // ensures trimming occurs before storing and validating notes length
+    public void UpdateDetails_WhenNotesHasSpacesButTrimmedLengthIs500_SetsTrimmedNotes()
+    {
+        // Given
+        var task = CreateValidTask();
+
+        var validTitle = "Buy milk";
+        var updatedValidNotesWithSpaces = "   " + new string('a', 500) + "   ";
+        var validUpdatedAtTime = new DateTimeOffset(2026, 6, 07, 06, 07, 0, TimeSpan.Zero);  
+
+        // When
+        task.UpdateDetails(validTitle, updatedValidNotesWithSpaces, validUpdatedAtTime);
+
+        // Then
+        task.Notes.Should().Be(new string('a', 500));
+    }
+
+    [Theory] // notes within the allowed limit should be preserved
+    [InlineData(1)]
+    [InlineData(250)]
+    [InlineData(500)]
+    public void UpdateDetails_WhenNotesLengthIsWithinLimit_SetsNotes(int notesLength)
+    {
+        // Given
+        var task = CreateValidTask();
+
+        var validTitle = "Buy milk";
+        var updatedValidNotesWithSpaces = new string('a', notesLength);        
+        var validUpdatedAtTime = new DateTimeOffset(2026, 6, 07, 06, 07, 0, TimeSpan.Zero);  
+
+        // When
+        task.UpdateDetails(validTitle, updatedValidNotesWithSpaces, validUpdatedAtTime);
+
+        // Then
+        task.Notes.Should().Be(updatedValidNotesWithSpaces);
+    }
+
+    [Fact] // ensures trimming occurs before storing and validating notes length
+    public void UpdateDetails_WithValidTitleAndNotes_UpdatesTask()
+    {
+        // Given
+        var task = CreateValidTask();
+
+        var updatedValidTitle = "Buy 2 milk";
+        var updatedValidNotesWithSpaces = "From the milk store";
+        var validUpdatedAtTime = new DateTimeOffset(2026, 6, 07, 06, 07, 0, TimeSpan.Zero);  
+
+        // When
+        task.UpdateDetails(updatedValidTitle, updatedValidNotesWithSpaces, validUpdatedAtTime);
+
+        // Then
+        task.Title.Should().Be(updatedValidTitle);
+        task.Notes.Should().Be(updatedValidNotesWithSpaces);
+        task.UpdatedAt.Should().Be(validUpdatedAtTime);
+    }
+
+    [Fact]
+    public void UpdateDetails_WithValidTitleAndNotes_DoesNotModifyNonEditableFields()
+    {
+        // Given
+        var task = CreateValidTask();
+
+        var updatedValidTitle = "Buy 2 milk";
+        var updatedValidNotesWithSpaces = "From the milk store";
+        var validUpdatedAtTime = new DateTimeOffset(2026, 6, 07, 06, 07, 0, TimeSpan.Zero);  
+
+        var idBeforeUpdateDetails = task.Id;
+        var statusUpdateDetails = task.Status;
+        var createdAtUpdateDetails = task.CreatedAt;        
+        var completedAtUpdateDetails = task.CompletedAt;
+        
+
+        // When
+        task.UpdateDetails(updatedValidTitle, updatedValidNotesWithSpaces, validUpdatedAtTime);
+
+        // Then
+        task.Id.Should().Be(idBeforeUpdateDetails);        
+        task.Status.Should().Be(statusUpdateDetails);
+        task.CreatedAt.Should().Be(createdAtUpdateDetails);       
+        task.CompletedAt.Should().Be(completedAtUpdateDetails);
+        
+    }
 
     #endregion
 

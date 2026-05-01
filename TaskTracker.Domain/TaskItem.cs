@@ -49,13 +49,13 @@ public class TaskItem
 
     public void Complete(DateTimeOffset now)
     {
+        ValidateNow(now);
+        
         // idempotent: completing an already completed task leaves the original completion state unchanged
         if (Status == TaskStatus.Completed)
         {
             return;
         }
-
-        ValidateNow(now);
 
         // record completion and capture when it happened
         Status = TaskStatus.Completed;
@@ -65,13 +65,13 @@ public class TaskItem
 
     public void Reopen(DateTimeOffset now)
     {
+        ValidateNow(now);
+
         // idempotent: reopening a task that is not completed leaves state unchanged
         if (Status != TaskStatus.Completed)
         {
             return;
         }
-
-        ValidateNow(now);
 
         // return task to the active state, clear completed time, and update updated time
         Status = TaskStatus.Active;
