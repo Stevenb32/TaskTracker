@@ -5,6 +5,9 @@ public abstract class TaskItemTestBase
     protected const string ValidTitle = "Buy milk";
     protected const string ValidNotes = "From the store";
 
+    protected const string UpdatedValidTitle = "Buy eggs";
+    protected const string UpdatedValidNotes = "From the market";
+
     protected static readonly DateTimeOffset ValidCreateTime = new(2026, 3, 25, 7, 0, 0, TimeSpan.Zero);
     protected static readonly DateTimeOffset ValidCompleteTime = new(2026, 4, 20, 16, 20, 0, TimeSpan.Zero);
     protected static readonly DateTimeOffset ValidUpdateTime = new(2026, 6, 7, 06, 07, 0, TimeSpan.Zero);
@@ -19,6 +22,16 @@ public abstract class TaskItemTestBase
         var task = TaskItem.Create(title, notes, createdAt ?? ValidCreateTime);
         task.Complete(completedAt ?? ValidCompleteTime);
         return task;
+    }
+
+    protected static string CreateTitleWithLength(int length)
+    {
+        return new string('a', length);
+    }
+
+    protected static string CreateNotesWithLength(int length)
+    {
+        return new string('a', length);
     }
 
 }
