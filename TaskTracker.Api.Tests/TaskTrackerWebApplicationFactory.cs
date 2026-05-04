@@ -59,5 +59,4 @@ public class TaskTrackerWebApplicationFactory : WebApplicationFactory<Program>
         return await db.Tasks.FirstOrDefaultAsync(t => t.Id == id);
     }
 
-
 }
