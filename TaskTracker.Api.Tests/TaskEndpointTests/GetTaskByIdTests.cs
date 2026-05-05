@@ -18,6 +18,21 @@ public class GetTaskByIdTests : IClassFixture<TaskTrackerWebApplicationFactory>
     }
 
     [Fact]
+    public async Task GetTaskById_WhenTaskDoesNotExist_ReturnsNotFound()
+    {
+        // Given
+        await _factory.ResetDatabaseAsync();        
+        
+        var nonExistentId = Guid.NewGuid();
+
+        // When        
+        var response = await _client.GetAsync($"/tasks/{nonExistentId}"); // search for GUID
+
+        // Then
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound);       
+    }
+
+    [Fact]
     public async Task GetTaskById_WhenTaskExists_ReturnsOkWithTask()
     {
         // Given
@@ -39,22 +54,7 @@ public class GetTaskByIdTests : IClassFixture<TaskTrackerWebApplicationFactory>
         responseTask.Id.Should().Be(existingTask.Id);
         responseTask.Title.Should().Be(existingTask.Title);
         responseTask.Notes.Should().Be(existingTask.Notes);
-    }
-
-    [Fact]
-    public async Task GetTaskById_WhenTaskDoesNotExist_ReturnsNotFound()
-    {
-        // Given
-        await _factory.ResetDatabaseAsync();        
-        
-        var nonExistentId = Guid.NewGuid();
-
-        // When        
-        var response = await _client.GetAsync($"/tasks/{nonExistentId}"); // search for GUID
-
-        // Then
-        response.StatusCode.Should().Be(HttpStatusCode.NotFound);       
-    }
+    }    
 
     [Fact]
     public async Task GetTaskById_ReturnsCorrectTask()

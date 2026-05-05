@@ -18,6 +18,21 @@ public class DeleteTaskTests : IClassFixture<TaskTrackerWebApplicationFactory>
     }
 
     [Fact]
+    public async Task DeleteTask_WhenTaskDoesNotExist_ReturnsNotFound()
+    {
+        // Given
+        await _factory.ResetDatabaseAsync();
+
+        var nonExistentId = Guid.NewGuid();
+
+        // When
+        var response = await _client.DeleteAsync($"/tasks/{nonExistentId}");
+    
+        // Then
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound);        
+    }
+
+    [Fact]
     public async Task DeleteTask_WhenTaskExists_ReturnsNoContent()
     {
         // Given
@@ -53,18 +68,4 @@ public class DeleteTaskTests : IClassFixture<TaskTrackerWebApplicationFactory>
         getByIdResponse.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 
-    [Fact]
-    public async Task DeleteTask_WhenTaskDoesNotExist_ReturnsNotFound()
-    {
-        // Given
-        await _factory.ResetDatabaseAsync();
-
-        var nonExistentId = Guid.NewGuid();
-
-        // When
-        var response = await _client.DeleteAsync($"/tasks/{nonExistentId}");
-    
-        // Then
-        response.StatusCode.Should().Be(HttpStatusCode.NotFound);        
-    }
 } 

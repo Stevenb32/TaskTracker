@@ -8,4 +8,5 @@ public class TaskItemResponse
     public string Status { get; set; } = string.Empty;
     public DateTimeOffset CreatedAt { get; set; }
     public DateTimeOffset? CompletedAt { get; set; }
+    public DateTimeOffset? UpdatedAt { get; set; }
 }

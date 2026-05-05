@@ -18,6 +18,21 @@ public class ReopenTaskTests : IClassFixture<TaskTrackerWebApplicationFactory>
     }
 
     [Fact]
+    public async Task ReopenTask_WhenTaskDoesNotExist_ReturnsNotFound()
+    {
+        // Given
+        await _factory.ResetDatabaseAsync();
+
+        var nonExistentId = Guid.NewGuid();        
+
+        // When        
+        var response = await _client.PostAsync($"/tasks/{nonExistentId}/reopen", null);
+
+        // Then
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+    }
+
+    [Fact]
     public async Task ReopenTask_WhenTaskExists_ReturnsOk()
     {
         // Given
@@ -86,22 +101,7 @@ public class ReopenTaskTests : IClassFixture<TaskTrackerWebApplicationFactory>
         responseTask.Should().NotBeNull();
         responseTask.Id.Should().Be(task.Id);
         responseTask.CompletedAt.Should().BeNull();
-    }
-
-    [Fact]
-    public async Task ReopenTask_WhenTaskDoesNotExist_ReturnsNotFound()
-    {
-        // Given
-        await _factory.ResetDatabaseAsync();
-
-        var nonExistentId = Guid.NewGuid();        
-
-        // When        
-        var response = await _client.PostAsync($"/tasks/{nonExistentId}/reopen", null);
-
-        // Then
-        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
-    }
+    }    
 
     [Fact]
     public async Task ReopenTask_WhenTaskIsNotCompleted_DoesNotChangeState()

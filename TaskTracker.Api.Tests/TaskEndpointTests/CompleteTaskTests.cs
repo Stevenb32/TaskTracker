@@ -18,6 +18,21 @@ public class CompleteTaskTests : IClassFixture<TaskTrackerWebApplicationFactory>
     }
 
     [Fact]
+    public async Task CompleteTask_WhenTaskDoesNotExist_ReturnsNotFound()
+    {
+        // Given
+        await _factory.ResetDatabaseAsync();
+
+        var nonExistentId = Guid.NewGuid();        
+
+        // When
+        var response = await _client.PostAsync($"/tasks/{nonExistentId}/complete", null);
+
+        // Then
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound);        
+    }
+
+    [Fact]
     public async Task CompleteTask_WhenTaskExists_ReturnsOk()
     {
         // Given
@@ -115,21 +130,6 @@ public class CompleteTaskTests : IClassFixture<TaskTrackerWebApplicationFactory>
         savedTask.CompletedAt.Should().NotBeNull();
 
         savedTask.Id.Should().Be(completedTask.Id);
-    }
-
-    [Fact]
-    public async Task CompleteTask_WhenTaskDoesNotExist_ReturnsNotFound()
-    {
-        // Given
-        await _factory.ResetDatabaseAsync();
-
-        var nonExistentId = Guid.NewGuid();        
-
-        // When
-        var response = await _client.PostAsync($"/tasks/{nonExistentId}/complete", null);
-
-        // Then
-        response.StatusCode.Should().Be(HttpStatusCode.NotFound);        
     }
 
     [Fact]

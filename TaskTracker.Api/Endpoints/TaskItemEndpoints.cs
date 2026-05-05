@@ -25,6 +25,12 @@ public static class TaskItemEndpoints
             .Produces<TaskItemResponse>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status404NotFound);
 
+        group.MapPut("/{id:guid}", UpdateTaskDetails)
+            .WithName("UpdateTaskDetails")
+            .Produces<TaskItemResponse>(StatusCodes.Status200OK)
+            .ProducesValidationProblem(StatusCodes.Status400BadRequest)
+            .Produces(StatusCodes.Status404NotFound);
+
         group.MapPost("/{id:guid}/complete", CompleteTask)
             .WithName("CompleteTask")
             .Produces<TaskItemResponse>(StatusCodes.Status200OK)
@@ -39,6 +45,8 @@ public static class TaskItemEndpoints
             .WithName("DeleteTask")
             .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status404NotFound);
+
+        
 
         return app;
     }
@@ -85,6 +93,26 @@ public static class TaskItemEndpoints
         {
             return Results.NotFound();
         }
+
+        return Results.Ok(ToResponse(taskItem));
+    }
+
+    private static async Task<IResult> UpdateTaskDetails(Guid id, TaskItemUpdateDetailsRequest request, TaskTrackerDbContext db)
+    {
+        var taskItem = await db.Tasks
+            .FirstOrDefaultAsync(t => t.Id == id);
+
+        if (taskItem is null)
+        {
+            return Results.NotFound();
+        }
+
+        taskItem.UpdateDetails(
+            request.Title,
+            request.Notes,
+            DateTimeOffset.UtcNow);
+
+        await db.SaveChangesAsync();
 
         return Results.Ok(ToResponse(taskItem));
     }
@@ -145,7 +173,8 @@ public static class TaskItemEndpoints
             Notes = taskItem.Notes,
             Status = taskItem.Status.ToString(),
             CreatedAt = taskItem.CreatedAt,
-            CompletedAt = taskItem.CompletedAt
+            CompletedAt = taskItem.CompletedAt,
+            UpdatedAt = taskItem.UpdatedAt
         };
     }
 }

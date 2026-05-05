@@ -3,6 +3,7 @@ using System.Net.Http.Json;
 using Microsoft.AspNetCore.Mvc.Testing;
 using TaskTracker.Api.Dtos;
 using TaskTracker.Domain;
+
 namespace TaskTracker.Api.Tests.TaskEndpointTests;
 
 public class GetTasksTests : IClassFixture<TaskTrackerWebApplicationFactory>
