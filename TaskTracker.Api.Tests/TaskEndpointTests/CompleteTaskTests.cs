@@ -49,6 +49,7 @@ public class CompleteTaskTests : IClassFixture<TaskTrackerWebApplicationFactory>
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
         var responseTask = await response.Content.ReadFromJsonAsync<TaskItemResponse>();
+
         responseTask.Should().NotBeNull();
 
         responseTask.Id.Should().Be(task.Id);
@@ -71,6 +72,7 @@ public class CompleteTaskTests : IClassFixture<TaskTrackerWebApplicationFactory>
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
         var responseTask = await response.Content.ReadFromJsonAsync<TaskItemResponse>();
+
         responseTask.Should().NotBeNull();
     
         responseTask.Id.Should().Be(task.Id);
@@ -96,6 +98,7 @@ public class CompleteTaskTests : IClassFixture<TaskTrackerWebApplicationFactory>
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
         var responseTask = await response.Content.ReadFromJsonAsync<TaskItemResponse>();
+
         responseTask.Should().NotBeNull();
         
         responseTask.CompletedAt.Should().NotBeNull();
@@ -120,16 +123,17 @@ public class CompleteTaskTests : IClassFixture<TaskTrackerWebApplicationFactory>
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
         var completedTask = await response.Content.ReadFromJsonAsync<TaskItemResponse>();
+
         completedTask.Should().NotBeNull();
 
         var savedTask = await _factory.GetTaskByIdAsync(task.Id);
 
         savedTask.Should().NotBeNull();
-        savedTask.Id.Should().Be(task.Id);
+        
+        savedTask.Id.Should().Be(completedTask.Id);
         savedTask.Status.Should().Be(Domain.TaskStatus.Completed);
         savedTask.CompletedAt.Should().NotBeNull();
 
-        savedTask.Id.Should().Be(completedTask.Id);
     }
 
     [Fact]
@@ -155,9 +159,10 @@ public class CompleteTaskTests : IClassFixture<TaskTrackerWebApplicationFactory>
         secondCompleteResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
         var secondCompletedTask = await secondCompleteResponse.Content.ReadFromJsonAsync<TaskItemResponse>();
+
         secondCompletedTask.Should().NotBeNull();
 
-        secondCompletedTask!.Id.Should().Be(firstCompletedTask!.Id);
+        secondCompletedTask.Id.Should().Be(firstCompletedTask!.Id);
         secondCompletedTask.Title.Should().Be(firstCompletedTask.Title);
         secondCompletedTask.Notes.Should().Be(firstCompletedTask.Notes);
         secondCompletedTask.Status.Should().Be(firstCompletedTask.Status);
@@ -165,12 +170,15 @@ public class CompleteTaskTests : IClassFixture<TaskTrackerWebApplicationFactory>
         secondCompletedTask.CompletedAt.Should().Be(firstCompletedTask.CompletedAt);
 
         var savedTask = await _factory.GetTaskByIdAsync(task.Id);
+
         savedTask.Should().NotBeNull();
-        savedTask!.Id.Should().Be(firstCompletedTask.Id);
+
+        savedTask.Id.Should().Be(firstCompletedTask.Id);
         savedTask.Title.Should().Be(firstCompletedTask.Title);
         savedTask.Notes.Should().Be(firstCompletedTask.Notes);
         savedTask.Status.Should().Be(Domain.TaskStatus.Completed);
         savedTask.CreatedAt.Should().Be(firstCompletedTask.CreatedAt);
-        savedTask!.CompletedAt.Should().Be(firstCompletedTask.CompletedAt);
+        savedTask.CompletedAt.Should().Be(firstCompletedTask.CompletedAt);
     }
+    
 } 

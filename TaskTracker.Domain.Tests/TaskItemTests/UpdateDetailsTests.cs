@@ -106,7 +106,7 @@ public class UpdateDetailsTests : TaskItemTestBase
         var validUpdatedAtTime = new DateTimeOffset(2026, 6, 07, 06, 07, 0, TimeSpan.Zero);
 
         // When
-        Action act = () => TaskItem.Create(validUpdatedTitle, notesWithInvalidLength, validUpdatedAtTime);
+        Action act = () => task.UpdateDetails(validUpdatedTitle, notesWithInvalidLength, validUpdatedAtTime);
 
         // Then
         act.Should().Throw<ArgumentException>().WithParameterName("notes");

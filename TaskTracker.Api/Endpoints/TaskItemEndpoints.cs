@@ -119,7 +119,8 @@ public static class TaskItemEndpoints
 
     private static async Task<IResult> CompleteTask(Guid id, TaskTrackerDbContext db)
     {
-        var taskItem = await db.Tasks.FirstOrDefaultAsync(t => t.Id == id);
+        var taskItem = await db.Tasks
+            .FirstOrDefaultAsync(t => t.Id == id);
 
         if (taskItem is null)
         {
@@ -134,7 +135,8 @@ public static class TaskItemEndpoints
 
     private static async Task<IResult> ReopenTask(Guid id, TaskTrackerDbContext db)
     {
-        var taskItem = await db.Tasks.FirstOrDefaultAsync(t => t.Id == id);
+        var taskItem = await db.Tasks
+            .FirstOrDefaultAsync(t => t.Id == id);
 
         if (taskItem is null)
         {
@@ -149,7 +151,8 @@ public static class TaskItemEndpoints
 
     private static async Task<IResult> DeleteTask(Guid id, TaskTrackerDbContext db)
     {
-        var taskItem = await db.Tasks.FirstOrDefaultAsync(t => t.Id == id);
+        var taskItem = await db.Tasks
+            .FirstOrDefaultAsync(t => t.Id == id);
 
         if (taskItem is null)
         {

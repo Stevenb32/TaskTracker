@@ -51,7 +51,9 @@ public class ReopenTaskTests : IClassFixture<TaskTrackerWebApplicationFactory>
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
         var responseTask = await response.Content.ReadFromJsonAsync<TaskItemResponse>();
+
         responseTask.Should().NotBeNull();
+
         responseTask.Id.Should().Be(task.Id);
     }
 
@@ -74,7 +76,9 @@ public class ReopenTaskTests : IClassFixture<TaskTrackerWebApplicationFactory>
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
         var responseTask = await response.Content.ReadFromJsonAsync<TaskItemResponse>();
+
         responseTask.Should().NotBeNull();
+
         responseTask.Id.Should().Be(task.Id);
         responseTask.Status.Should().Be(Domain.TaskStatus.Active.ToString());
     }
@@ -98,7 +102,9 @@ public class ReopenTaskTests : IClassFixture<TaskTrackerWebApplicationFactory>
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
         var responseTask = await response.Content.ReadFromJsonAsync<TaskItemResponse>();
+
         responseTask.Should().NotBeNull();
+
         responseTask.Id.Should().Be(task.Id);
         responseTask.CompletedAt.Should().BeNull();
     }    
@@ -120,18 +126,23 @@ public class ReopenTaskTests : IClassFixture<TaskTrackerWebApplicationFactory>
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
         var responseTask = await response.Content.ReadFromJsonAsync<TaskItemResponse>();
+
         responseTask.Should().NotBeNull();
-        responseTask!.Id.Should().Be(task.Id);
+
+        responseTask.Id.Should().Be(task.Id);
         responseTask.Status.Should().Be(task.Status.ToString());
         responseTask.CompletedAt.Should().Be(task.CompletedAt);
 
         var savedTask = await _factory.GetTaskByIdAsync(task.Id);
+
         savedTask.Should().NotBeNull();
-        savedTask!.Id.Should().Be(task.Id);
+
+        savedTask.Id.Should().Be(task.Id);
         savedTask.Title.Should().Be(task.Title);
         savedTask.Notes.Should().Be(task.Notes);
         savedTask.Status.Should().Be(task.Status);
         savedTask.CreatedAt.Should().Be(task.CreatedAt);
         savedTask.CompletedAt.Should().Be(task.CompletedAt);
     }
+    
 } 

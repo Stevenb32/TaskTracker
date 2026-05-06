@@ -49,6 +49,7 @@ public class GetTaskByIdTests : IClassFixture<TaskTrackerWebApplicationFactory>
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
         var responseTask = await response.Content.ReadFromJsonAsync<TaskItemResponse>();
+
         responseTask.Should().NotBeNull();
 
         responseTask.Id.Should().Be(existingTask.Id);
@@ -75,6 +76,7 @@ public class GetTaskByIdTests : IClassFixture<TaskTrackerWebApplicationFactory>
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
         var responseTask = await response.Content.ReadFromJsonAsync<TaskItemResponse>();
+        
         responseTask.Should().NotBeNull();
 
         responseTask.Id.Should().Be(task1.Id);
@@ -84,4 +86,5 @@ public class GetTaskByIdTests : IClassFixture<TaskTrackerWebApplicationFactory>
         responseTask.Id.Should().NotBe(task2.Id);
         responseTask.Title.Should().NotBe(task2.Title);
     }
+    
 } 

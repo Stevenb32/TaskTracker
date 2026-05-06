@@ -17,6 +17,24 @@ public class CreateTaskTests : IClassFixture<TaskTrackerWebApplicationFactory>
         _client = factory.CreateClient();
     }
 
+    [Fact]
+    public async Task CreateTask_WhenTitleIsMissing_ReturnsBadRequest()
+    {
+        // Given
+        await _factory.ResetDatabaseAsync();
+
+        var request = new
+        {
+            Notes = "Updated notes"
+        };
+    
+        // When
+        var response = await _client.PostAsJsonAsync("/tasks", request);
+    
+        // Then
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
+
     [Theory]
     [InlineData(null)] // null
     [InlineData("")] // empty
@@ -105,7 +123,9 @@ public class CreateTaskTests : IClassFixture<TaskTrackerWebApplicationFactory>
         response.StatusCode.Should().Be(HttpStatusCode.Created);
 
         var createdTask = await response.Content.ReadFromJsonAsync<TaskItemResponse>();
+
         createdTask.Should().NotBeNull();
+
         createdTask.Title.Should().HaveLength(titleLength);
     }
 
@@ -128,8 +148,10 @@ public class CreateTaskTests : IClassFixture<TaskTrackerWebApplicationFactory>
         response.StatusCode.Should().Be(HttpStatusCode.Created);
 
         var createdTask = await response.Content.ReadFromJsonAsync<TaskItemResponse>();
+
         createdTask.Should().NotBeNull();
-        createdTask!.Id.Should().NotBeEmpty();
+
+        createdTask.Id.Should().NotBeEmpty();
         createdTask.Title.Should().Be(request.Title);
         createdTask.Notes.Should().Be(request.Notes);
         createdTask.Status.Should().Be(Domain.TaskStatus.Active.ToString());        
@@ -154,9 +176,12 @@ public class CreateTaskTests : IClassFixture<TaskTrackerWebApplicationFactory>
         response.StatusCode.Should().Be(HttpStatusCode.Created);
 
         var createdTask = await response.Content.ReadFromJsonAsync<TaskItemResponse>();
+        
         createdTask.Should().NotBeNull();        
 
         var savedTask = await _factory.GetTaskByIdAsync(createdTask.Id);
+
+        savedTask.Should().NotBeNull();
 
         savedTask!.Id.Should().Be(createdTask.Id);
         savedTask.Title.Should().Be(createdTask.Title);
@@ -184,7 +209,9 @@ public class CreateTaskTests : IClassFixture<TaskTrackerWebApplicationFactory>
         response.StatusCode.Should().Be(HttpStatusCode.Created);
 
         var createdTask = await response.Content.ReadFromJsonAsync<TaskItemResponse>();
+
         createdTask.Should().NotBeNull();
+
         createdTask.Status.Should().Be(Domain.TaskStatus.Active.ToString());
     }
 
@@ -211,6 +238,7 @@ public class CreateTaskTests : IClassFixture<TaskTrackerWebApplicationFactory>
         response.StatusCode.Should().Be(HttpStatusCode.Created);
 
         var createdTask = await response.Content.ReadFromJsonAsync<TaskItemResponse>();
+
         createdTask.Should().NotBeNull();
 
         createdTask.CreatedAt.Should().BeOnOrAfter(timeBefore);
@@ -236,7 +264,9 @@ public class CreateTaskTests : IClassFixture<TaskTrackerWebApplicationFactory>
         response.StatusCode.Should().Be(HttpStatusCode.Created);
 
         var createdTask = await response.Content.ReadFromJsonAsync<TaskItemResponse>();
+
         createdTask.Should().NotBeNull();
+        
         createdTask.CompletedAt.Should().BeNull();
     }
 
@@ -260,6 +290,7 @@ public class CreateTaskTests : IClassFixture<TaskTrackerWebApplicationFactory>
         response.Headers.Location.Should().NotBeNull();
 
         var createdTask = await response.Content.ReadFromJsonAsync<TaskItemResponse>();
+
         createdTask.Should().NotBeNull();
 
         response.Headers.Location.ToString().Should().Be($"/tasks/{createdTask!.Id}");

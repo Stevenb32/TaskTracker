@@ -30,7 +30,9 @@ public class GetTasksTests : IClassFixture<TaskTrackerWebApplicationFactory>
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
         var tasks = await response.Content.ReadFromJsonAsync<List<TaskItemResponse>>();
+
         tasks.Should().NotBeNull();
+
         tasks.Should().BeEmpty();       
     }
 
@@ -53,10 +55,12 @@ public class GetTasksTests : IClassFixture<TaskTrackerWebApplicationFactory>
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
         var tasks = await response.Content.ReadFromJsonAsync<List<TaskItemResponse>>();
-        tasks.Should().NotBeNull();
-        tasks.Should().HaveCount(2);
 
+        tasks.Should().NotBeNull();
+
+        tasks.Should().HaveCount(2);
         tasks.Should().Contain(t => t.Title == task1.Title && t.Notes == task1.Notes);
         tasks.Should().Contain(t => t.Title == task2.Title && t.Notes == task2.Notes);
     }
+    
 } 

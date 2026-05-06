@@ -42,6 +42,7 @@ public class TaskWorkflowTests : IClassFixture<TaskTrackerWebApplicationFactory>
         getByIdResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
         var retrievedTask = await getByIdResponse.Content.ReadFromJsonAsync<TaskItemResponse>();
+
         retrievedTask.Should().NotBeNull();
 
         retrievedTask.Id.Should().Be(createdTask.Id);
@@ -71,13 +72,14 @@ public class TaskWorkflowTests : IClassFixture<TaskTrackerWebApplicationFactory>
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
         var retrievedTask = await response.Content.ReadFromJsonAsync<TaskItemResponse>();
+
         retrievedTask.Should().NotBeNull();
 
         retrievedTask.Id.Should().Be(task.Id);
         retrievedTask.Status.Should().Be(Domain.TaskStatus.Completed.ToString());
         retrievedTask.CompletedAt.Should().NotBeNull(); 
     }
- 
+
     [Fact]
     public async Task ReopenTask_ThenGetTaskById_ReturnsUpdatedStatus()
     {
@@ -99,6 +101,7 @@ public class TaskWorkflowTests : IClassFixture<TaskTrackerWebApplicationFactory>
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
         var retrievedTask = await response.Content.ReadFromJsonAsync<TaskItemResponse>();
+
         retrievedTask.Should().NotBeNull();
 
         retrievedTask.Id.Should().Be(task.Id);
@@ -126,9 +129,11 @@ public class TaskWorkflowTests : IClassFixture<TaskTrackerWebApplicationFactory>
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
         var retrievedTask = await response.Content.ReadFromJsonAsync<TaskItemResponse>();
+
         retrievedTask.Should().NotBeNull();
 
         retrievedTask.Id.Should().Be(task.Id);
         retrievedTask.CompletedAt.Should().BeNull();        
     }
+
 } 
