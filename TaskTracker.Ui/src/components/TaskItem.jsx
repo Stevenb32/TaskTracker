@@ -126,6 +126,12 @@ function TaskItem({ task, onCompleteTask, onReopenTask, onUpdateTask, onDeleteTa
           <dt className="inline font-medium">Created: </dt>
           <dd className="inline">{formatDate(task.createdAt)}</dd>
         </div>
+        {task.updatedAt && (
+          <div>
+            <dt className="inline font-medium">Last Updated: </dt>
+            <dd className="inline">{formatDate(task.updatedAt)}</dd>
+          </div>
+        )}
         {task.completedAt && (
           <div>
             <dt className="inline font-medium">Completed: </dt>
