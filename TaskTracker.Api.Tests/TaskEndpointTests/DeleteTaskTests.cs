@@ -26,10 +26,10 @@ public class DeleteTaskTests : IClassFixture<TaskTrackerWebApplicationFactory>
         var nonExistentId = Guid.NewGuid();
 
         // When
-        var response = await _client.DeleteAsync($"/tasks/{nonExistentId}");
+        var deleteResponse = await _client.DeleteAsync($"/tasks/{nonExistentId}");
     
         // Then
-        response.StatusCode.Should().Be(HttpStatusCode.NotFound);        
+        deleteResponse.StatusCode.Should().Be(HttpStatusCode.NotFound);        
     }
 
     [Fact]
@@ -43,10 +43,10 @@ public class DeleteTaskTests : IClassFixture<TaskTrackerWebApplicationFactory>
         await _factory.AddTaskAsync(task);
     
         // When
-        var response = await _client.DeleteAsync($"/tasks/{task.Id}");
+        var deleteResponse = await _client.DeleteAsync($"/tasks/{task.Id}");
     
         // Then
-        response.StatusCode.Should().Be(HttpStatusCode.NoContent);
+        deleteResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
     }
 
     [Fact]

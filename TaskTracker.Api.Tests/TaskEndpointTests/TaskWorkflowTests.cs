@@ -18,22 +18,22 @@ public class TaskWorkflowTests : IClassFixture<TaskTrackerWebApplicationFactory>
     }
 
     [Fact]
-    public async Task CreateTask_ThenGetTask_ReturnsCreatedTask()
+    public async Task CreateTask_ThenGetTaskById_ReturnsCreatedTask()
     {
         // Given
         await _factory.ResetDatabaseAsync();
 
-        var request = new TaskItemCreateRequest
+        var createRequest = new TaskItemCreateRequest
         {
             Title = "Buy milk",
             Notes = "From the store"
         };
 
         // When
-        var createResponse = await _client.PostAsJsonAsync("/tasks", request);
+        var createResponse = await _client.PostAsJsonAsync("/tasks", createRequest);
         createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
 
-        var createdTask = await createResponse.Content.ReadFromJsonAsync<TaskItemResponse>();
+        var createdTask = await createResponse.Content.ReadFromJsonAsync<TaskItemResponse>();        
         createdTask.Should().NotBeNull();
 
         var getByIdResponse = await _client.GetAsync($"/tasks/{createdTask.Id}");
@@ -51,6 +51,81 @@ public class TaskWorkflowTests : IClassFixture<TaskTrackerWebApplicationFactory>
         retrievedTask.Status.Should().Be(createdTask.Status);
         retrievedTask.CreatedAt.Should().Be(createdTask.CreatedAt);
         retrievedTask.CompletedAt.Should().Be(createdTask.CompletedAt);
+        retrievedTask.UpdatedAt.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task CreateTask_ThenUpdateDetails_ThenGetTask_ReturnsUpdatedTask()
+    {
+        // Given
+        await _factory.ResetDatabaseAsync();
+
+        var createRequest = new TaskItemCreateRequest
+        {
+            Title = "Buy milk",
+            Notes = "From the store"
+        };
+
+        var createResponse = await _client.PostAsJsonAsync("/tasks", createRequest);
+        createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+
+        var createdTask = await createResponse.Content.ReadFromJsonAsync<TaskItemResponse>();
+        createdTask.Should().NotBeNull();
+
+        var updateRequest = new TaskItemUpdateDetailsRequest
+        {
+            Title = "Buy oat milk",
+            Notes = "From Publix"
+        };
+
+        // When
+        var updateResponse = await _client.PutAsJsonAsync($"/tasks/{createdTask.Id}", updateRequest);
+
+        // Then
+        updateResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var getByIdResponse = await _client.GetAsync($"/tasks/{createdTask.Id}");
+        getByIdResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var retrievedTask = await getByIdResponse.Content.ReadFromJsonAsync<TaskItemResponse>();
+
+        retrievedTask.Should().NotBeNull();
+
+        retrievedTask.Id.Should().Be(createdTask.Id);
+        retrievedTask.Title.Should().Be(updateRequest.Title);
+        retrievedTask.Notes.Should().Be(updateRequest.Notes);
+        retrievedTask.Status.Should().Be(createdTask.Status);
+        retrievedTask.CreatedAt.Should().Be(createdTask.CreatedAt);
+        retrievedTask.CompletedAt.Should().BeNull();
+        retrievedTask.UpdatedAt.Should().NotBeNull();
+    }
+
+    [Fact]
+    public async Task CreateTask_ThenDeleteTask_ThenGetTask_ReturnsNotFound()
+    {
+        // Given
+        await _factory.ResetDatabaseAsync();
+
+        var createRequest = new TaskItemCreateRequest
+        {
+            Title = "Buy milk",
+            Notes = "From the store"
+        };
+
+        var createResponse = await _client.PostAsJsonAsync("/tasks", createRequest);
+        createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+
+        var createdTask = await createResponse.Content.ReadFromJsonAsync<TaskItemResponse>();
+        createdTask.Should().NotBeNull();
+
+        // When
+        var deleteResponse = await _client.DeleteAsync($"/tasks/{createdTask.Id}");
+
+        // Then
+        deleteResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
+
+        var getByIdResponse = await _client.GetAsync($"/tasks/{createdTask.Id}");
+        getByIdResponse.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 
     [Fact]
@@ -59,23 +134,23 @@ public class TaskWorkflowTests : IClassFixture<TaskTrackerWebApplicationFactory>
         // Given
         await _factory.ResetDatabaseAsync();
 
-        var task = TaskItem.Create("Buy milk", "From the store", new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero));
+        var createdTask = TaskItem.Create("Buy milk", "From the store", new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero));
 
-        await _factory.AddTaskAsync(task);
+        await _factory.AddTaskAsync(createdTask);
 
-        await _client.PostAsync($"/tasks/{task.Id}/complete", null);
+        await _client.PostAsync(requestUri: $"/tasks/{createdTask.Id}/complete", null);
 
         // When
-        var response = await _client.GetAsync($"/tasks/{task.Id}");
+        var getTaskByIdResponse = await _client.GetAsync($"/tasks/{createdTask.Id}");
 
         // Then
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        getTaskByIdResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        var retrievedTask = await response.Content.ReadFromJsonAsync<TaskItemResponse>();
+        var retrievedTask = await getTaskByIdResponse.Content.ReadFromJsonAsync<TaskItemResponse>();
 
         retrievedTask.Should().NotBeNull();
 
-        retrievedTask.Id.Should().Be(task.Id);
+        retrievedTask.Id.Should().Be(createdTask.Id);
         retrievedTask.Status.Should().Be(Domain.TaskStatus.Completed.ToString());
         retrievedTask.CompletedAt.Should().NotBeNull(); 
     }
@@ -86,25 +161,25 @@ public class TaskWorkflowTests : IClassFixture<TaskTrackerWebApplicationFactory>
         // Given
         await _factory.ResetDatabaseAsync();
 
-        var task = TaskItem.Create("Buy milk", "From the store", new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero));
+        var createdTask = TaskItem.Create("Buy milk", "From the store", new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero));
 
-        await _factory.AddTaskAsync(task);
+        await _factory.AddTaskAsync(createdTask);
 
-        await _client.PostAsync($"/tasks/{task.Id}/complete", null);
-        await _client.PostAsync($"/tasks/{task.Id}/reopen", null);
+        await _client.PostAsync($"/tasks/{createdTask.Id}/complete", null);
+        await _client.PostAsync($"/tasks/{createdTask.Id}/reopen", null);
 
         // When
         
-        var response = await _client.GetAsync($"/tasks/{task.Id}");
+        var getTaskByIdResponse = await _client.GetAsync($"/tasks/{createdTask.Id}");
 
         // Then
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        getTaskByIdResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        var retrievedTask = await response.Content.ReadFromJsonAsync<TaskItemResponse>();
+        var retrievedTask = await getTaskByIdResponse.Content.ReadFromJsonAsync<TaskItemResponse>();
 
         retrievedTask.Should().NotBeNull();
 
-        retrievedTask.Id.Should().Be(task.Id);
+        retrievedTask.Id.Should().Be(createdTask.Id);
         retrievedTask.Status.Should().Be(Domain.TaskStatus.Active.ToString());        
     }
 
@@ -114,16 +189,16 @@ public class TaskWorkflowTests : IClassFixture<TaskTrackerWebApplicationFactory>
         // Given
         await _factory.ResetDatabaseAsync();
 
-        var task = TaskItem.Create("Buy milk", "From the store", new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero));
+        var createdTask = TaskItem.Create("Buy milk", "From the store", new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero));
 
-        await _factory.AddTaskAsync(task);
+        await _factory.AddTaskAsync(createdTask);
 
-        await _client.PostAsync($"/tasks/{task.Id}/complete", null);
-        await _client.PostAsync($"/tasks/{task.Id}/reopen", null);
+        await _client.PostAsync($"/tasks/{createdTask.Id}/complete", null);
+        await _client.PostAsync($"/tasks/{createdTask.Id}/reopen", null);
 
         // When
         
-        var response = await _client.GetAsync($"/tasks/{task.Id}");
+        var response = await _client.GetAsync($"/tasks/{createdTask.Id}");
 
         // Then
         response.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -132,7 +207,7 @@ public class TaskWorkflowTests : IClassFixture<TaskTrackerWebApplicationFactory>
 
         retrievedTask.Should().NotBeNull();
 
-        retrievedTask.Id.Should().Be(task.Id);
+        retrievedTask.Id.Should().Be(createdTask.Id);
         retrievedTask.CompletedAt.Should().BeNull();        
     }
 

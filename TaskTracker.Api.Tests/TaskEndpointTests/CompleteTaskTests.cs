@@ -26,10 +26,10 @@ public class CompleteTaskTests : IClassFixture<TaskTrackerWebApplicationFactory>
         var nonExistentId = Guid.NewGuid();        
 
         // When
-        var response = await _client.PostAsync($"/tasks/{nonExistentId}/complete", null);
+        var completeResponse = await _client.PostAsync($"/tasks/{nonExistentId}/complete", null);
 
         // Then
-        response.StatusCode.Should().Be(HttpStatusCode.NotFound);        
+        completeResponse.StatusCode.Should().Be(HttpStatusCode.NotFound);        
     }
 
     [Fact]
@@ -38,21 +38,21 @@ public class CompleteTaskTests : IClassFixture<TaskTrackerWebApplicationFactory>
         // Given
         await _factory.ResetDatabaseAsync();
 
-        var task = TaskItem.Create("Buy milk", "From the store", new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero));        
+        var createdTask = TaskItem.Create("Buy milk", "From the store", new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero));        
 
-        await _factory.AddTaskAsync(task);
+        await _factory.AddTaskAsync(createdTask);
 
         // When        
-        var response = await _client.PostAsync($"/tasks/{task.Id}/complete", null);
+        var completeResponse = await _client.PostAsync($"/tasks/{createdTask.Id}/complete", null);
 
         // Then
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        completeResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        var responseTask = await response.Content.ReadFromJsonAsync<TaskItemResponse>();
+        var completedTask = await completeResponse.Content.ReadFromJsonAsync<TaskItemResponse>();
 
-        responseTask.Should().NotBeNull();
+        completedTask.Should().NotBeNull();
 
-        responseTask.Id.Should().Be(task.Id);
+        completedTask.Id.Should().Be(createdTask.Id);
     }
 
     [Fact]
@@ -61,22 +61,22 @@ public class CompleteTaskTests : IClassFixture<TaskTrackerWebApplicationFactory>
         // Given
         await _factory.ResetDatabaseAsync();
 
-        var task = TaskItem.Create("Buy milk", "From the store", new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero));        
+        var createdtask = TaskItem.Create("Buy milk", "From the store", new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero));        
 
-        await _factory.AddTaskAsync(task);
+        await _factory.AddTaskAsync(createdtask);
 
         // When        
-        var response = await _client.PostAsync($"/tasks/{task.Id}/complete", null);
+        var completeResponse = await _client.PostAsync($"/tasks/{createdtask.Id}/complete", null);
 
         // Then
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        completeResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        var responseTask = await response.Content.ReadFromJsonAsync<TaskItemResponse>();
+        var completedTask = await completeResponse.Content.ReadFromJsonAsync<TaskItemResponse>();
 
-        responseTask.Should().NotBeNull();
+        completedTask.Should().NotBeNull();
     
-        responseTask.Id.Should().Be(task.Id);
-        responseTask.Status.Should().Be(Domain.TaskStatus.Completed.ToString());
+        completedTask.Id.Should().Be(createdtask.Id);
+        completedTask.Status.Should().Be(Domain.TaskStatus.Completed.ToString());
     }
 
     [Fact]
@@ -85,25 +85,27 @@ public class CompleteTaskTests : IClassFixture<TaskTrackerWebApplicationFactory>
         // Given
         await _factory.ResetDatabaseAsync();
 
-        var task = TaskItem.Create("Buy milk", "From the store", new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero));                
+        var createdTask = TaskItem.Create("Buy milk", "From the store", new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero));                
 
-        await _factory.AddTaskAsync(task);        
+        await _factory.AddTaskAsync(createdTask);        
 
         // When        
-        var timeBefore = DateTimeOffset.UtcNow;
-        var response = await _client.PostAsync($"/tasks/{task.Id}/complete", null);
-        var timeAfter = DateTimeOffset.UtcNow;
+        var timeBeforeComplete = DateTimeOffset.UtcNow;
+
+        var completeResponse = await _client.PostAsync($"/tasks/{createdTask.Id}/complete", null);
+
+        var timeAfterComplete = DateTimeOffset.UtcNow;
 
         // Then
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        completeResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        var responseTask = await response.Content.ReadFromJsonAsync<TaskItemResponse>();
+        var completedTask = await completeResponse.Content.ReadFromJsonAsync<TaskItemResponse>();
 
-        responseTask.Should().NotBeNull();
+        completedTask.Should().NotBeNull();
         
-        responseTask.CompletedAt.Should().NotBeNull();
-        responseTask.CompletedAt.Should().BeOnOrAfter(timeBefore);
-        responseTask.CompletedAt.Should().BeOnOrBefore(timeAfter);       
+        completedTask.CompletedAt.Should().NotBeNull();
+        completedTask.CompletedAt.Should().BeOnOrAfter(timeBeforeComplete);
+        completedTask.CompletedAt.Should().BeOnOrBefore(timeAfterComplete);       
     }
 
     [Fact]
@@ -112,21 +114,21 @@ public class CompleteTaskTests : IClassFixture<TaskTrackerWebApplicationFactory>
         // Given
         await _factory.ResetDatabaseAsync();
 
-        var task = TaskItem.Create("Buy milk", "From the store", new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero));        
+        var createdTask = TaskItem.Create("Buy milk", "From the store", new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero));        
 
-        await _factory.AddTaskAsync(task);
+        await _factory.AddTaskAsync(createdTask);
 
         // When
-        var response = await _client.PostAsync($"/tasks/{task.Id}/complete", null);
+        var completeResponse = await _client.PostAsync($"/tasks/{createdTask.Id}/complete", null);
 
         // Then
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        completeResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        var completedTask = await response.Content.ReadFromJsonAsync<TaskItemResponse>();
+        var completedTask = await completeResponse.Content.ReadFromJsonAsync<TaskItemResponse>();
 
         completedTask.Should().NotBeNull();
 
-        var savedTask = await _factory.GetTaskByIdAsync(task.Id);
+        var savedTask = await _factory.GetTaskByIdAsync(createdTask.Id);
 
         savedTask.Should().NotBeNull();
         
@@ -142,18 +144,18 @@ public class CompleteTaskTests : IClassFixture<TaskTrackerWebApplicationFactory>
         // Given
         await _factory.ResetDatabaseAsync();
 
-        var task = TaskItem.Create("Buy milk", "From the store", new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero));
+        var createdTask = TaskItem.Create("Buy milk", "From the store", new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero));
 
-        await _factory.AddTaskAsync(task);
+        await _factory.AddTaskAsync(createdTask);
 
-        var firstCompleteResponse = await _client.PostAsync($"/tasks/{task.Id}/complete", null);
+        var firstCompleteResponse = await _client.PostAsync($"/tasks/{createdTask.Id}/complete", null);
         firstCompleteResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
         var firstCompletedTask = await firstCompleteResponse.Content.ReadFromJsonAsync<TaskItemResponse>();
         firstCompletedTask.Should().NotBeNull();
 
         // When
-        var secondCompleteResponse = await _client.PostAsync($"/tasks/{task.Id}/complete", null);
+        var secondCompleteResponse = await _client.PostAsync($"/tasks/{createdTask.Id}/complete", null);
 
         // Then
         secondCompleteResponse.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -169,7 +171,7 @@ public class CompleteTaskTests : IClassFixture<TaskTrackerWebApplicationFactory>
         secondCompletedTask.CreatedAt.Should().Be(firstCompletedTask.CreatedAt);
         secondCompletedTask.CompletedAt.Should().Be(firstCompletedTask.CompletedAt);
 
-        var savedTask = await _factory.GetTaskByIdAsync(task.Id);
+        var savedTask = await _factory.GetTaskByIdAsync(createdTask.Id);
 
         savedTask.Should().NotBeNull();
 

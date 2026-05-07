@@ -26,10 +26,10 @@ public class GetTaskByIdTests : IClassFixture<TaskTrackerWebApplicationFactory>
         var nonExistentId = Guid.NewGuid();
 
         // When        
-        var response = await _client.GetAsync($"/tasks/{nonExistentId}"); // search for GUID
+        var getTaskByIdResponse = await _client.GetAsync($"/tasks/{nonExistentId}"); // search for GUID
 
         // Then
-        response.StatusCode.Should().Be(HttpStatusCode.NotFound);       
+        getTaskByIdResponse.StatusCode.Should().Be(HttpStatusCode.NotFound);       
     }
 
     [Fact]
@@ -38,23 +38,23 @@ public class GetTaskByIdTests : IClassFixture<TaskTrackerWebApplicationFactory>
         // Given
         await _factory.ResetDatabaseAsync();
 
-        var existingTask = TaskItem.Create("Buy milk", "From the store", new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero));       
+        var createdTask = TaskItem.Create("Buy milk", "From the store", new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero));       
 
-        await _factory.AddTaskAsync(existingTask);
+        await _factory.AddTaskAsync(createdTask);
 
         // When        
-        var response = await _client.GetAsync($"/tasks/{existingTask.Id}");
+        var getTaskByIdResponse = await _client.GetAsync($"/tasks/{createdTask.Id}");
 
         // Then
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        getTaskByIdResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        var responseTask = await response.Content.ReadFromJsonAsync<TaskItemResponse>();
+        var retrievedTask = await getTaskByIdResponse.Content.ReadFromJsonAsync<TaskItemResponse>();
 
-        responseTask.Should().NotBeNull();
+        retrievedTask.Should().NotBeNull();
 
-        responseTask.Id.Should().Be(existingTask.Id);
-        responseTask.Title.Should().Be(existingTask.Title);
-        responseTask.Notes.Should().Be(existingTask.Notes);
+        retrievedTask.Id.Should().Be(createdTask.Id);
+        retrievedTask.Title.Should().Be(createdTask.Title);
+        retrievedTask.Notes.Should().Be(createdTask.Notes);
     }    
 
     [Fact]
@@ -63,28 +63,28 @@ public class GetTaskByIdTests : IClassFixture<TaskTrackerWebApplicationFactory>
         // Given
         await _factory.ResetDatabaseAsync();
 
-        var task1 = TaskItem.Create("Buy milk", "From the store", new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero));
-        var task2 = TaskItem.Create("Walk dog", "Around the block", new DateTimeOffset(2026, 3, 25, 8, 0, 0, TimeSpan.Zero));
+        var firstCreatedTask = TaskItem.Create("Buy milk", "From the store", new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero));
+        var secondCreatedTask = TaskItem.Create("Walk dog", "Around the block", new DateTimeOffset(2026, 3, 25, 8, 0, 0, TimeSpan.Zero));
 
-        await _factory.AddTaskAsync(task1);
-        await _factory.AddTaskAsync(task2);
+        await _factory.AddTaskAsync(firstCreatedTask);
+        await _factory.AddTaskAsync(secondCreatedTask);
 
         // When        
-        var response = await _client.GetAsync($"/tasks/{task1.Id}");
+        var getTaskByIdResponse = await _client.GetAsync($"/tasks/{firstCreatedTask.Id}");
 
         // Then
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        getTaskByIdResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        var responseTask = await response.Content.ReadFromJsonAsync<TaskItemResponse>();
+        var retrievedTask = await getTaskByIdResponse.Content.ReadFromJsonAsync<TaskItemResponse>();
         
-        responseTask.Should().NotBeNull();
+        retrievedTask.Should().NotBeNull();
 
-        responseTask.Id.Should().Be(task1.Id);
-        responseTask.Title.Should().Be(task1.Title);
-        responseTask.Notes.Should().Be(task1.Notes);
+        retrievedTask.Id.Should().Be(firstCreatedTask.Id);
+        retrievedTask.Title.Should().Be(firstCreatedTask.Title);
+        retrievedTask.Notes.Should().Be(firstCreatedTask.Notes);
 
-        responseTask.Id.Should().NotBe(task2.Id);
-        responseTask.Title.Should().NotBe(task2.Title);
+        retrievedTask.Id.Should().NotBe(secondCreatedTask.Id);
+        retrievedTask.Title.Should().NotBe(secondCreatedTask.Title);
     }
     
 } 

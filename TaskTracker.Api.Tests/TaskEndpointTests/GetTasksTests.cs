@@ -24,12 +24,12 @@ public class GetTasksTests : IClassFixture<TaskTrackerWebApplicationFactory>
         await _factory.ResetDatabaseAsync();
 
         // When        
-        var response = await _client.GetAsync("/tasks");
+        var getTasksResponse = await _client.GetAsync("/tasks");
 
         // Then
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        getTasksResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        var tasks = await response.Content.ReadFromJsonAsync<List<TaskItemResponse>>();
+        var tasks = await getTasksResponse.Content.ReadFromJsonAsync<List<TaskItemResponse>>();
 
         tasks.Should().NotBeNull();
 
@@ -42,25 +42,25 @@ public class GetTasksTests : IClassFixture<TaskTrackerWebApplicationFactory>
         // Given
         await _factory.ResetDatabaseAsync();
 
-        var task1 = TaskItem.Create("Buy milk", "From the store", new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero));
-        var task2 = TaskItem.Create("Walk dog", "Around the block", new DateTimeOffset(2026, 3, 25, 8, 0, 0, TimeSpan.Zero));
+        var firstCreatedTask = TaskItem.Create("Buy milk", "From the store", new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero));
+        var secondCreatedTask = TaskItem.Create("Walk dog", "Around the block", new DateTimeOffset(2026, 3, 25, 8, 0, 0, TimeSpan.Zero));
 
-        await _factory.AddTaskAsync(task1);
-        await _factory.AddTaskAsync(task2);
+        await _factory.AddTaskAsync(firstCreatedTask);
+        await _factory.AddTaskAsync(secondCreatedTask);
 
         // When        
-        var response = await _client.GetAsync("/tasks");
+        var getTasksResponse = await _client.GetAsync("/tasks");
 
         // Then
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        getTasksResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        var tasks = await response.Content.ReadFromJsonAsync<List<TaskItemResponse>>();
+        var tasks = await getTasksResponse.Content.ReadFromJsonAsync<List<TaskItemResponse>>();
 
         tasks.Should().NotBeNull();
 
         tasks.Should().HaveCount(2);
-        tasks.Should().Contain(t => t.Title == task1.Title && t.Notes == task1.Notes);
-        tasks.Should().Contain(t => t.Title == task2.Title && t.Notes == task2.Notes);
+        tasks.Should().Contain(t => t.Title == firstCreatedTask.Title && t.Notes == firstCreatedTask.Notes);
+        tasks.Should().Contain(t => t.Title == secondCreatedTask.Title && t.Notes == secondCreatedTask.Notes);
     }
     
 } 
