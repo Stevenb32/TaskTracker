@@ -1,5 +1,12 @@
 import { useEffect, useState } from 'react';
-import { completeTask, createTask, deleteTask, getTasks, reopenTask } from './api/tasksApi.js';
+import {
+  completeTask,
+  createTask,
+  deleteTask,
+  getTasks,
+  reopenTask,
+  updateTaskDetails,
+} from './api/tasksApi.js';
 import TaskForm from './components/TaskForm.jsx';
 import TaskList from './components/TaskList.jsx';
 
@@ -60,6 +67,23 @@ function App() {
     }
   }
 
+  async function handleUpdateTask(id, task) {
+    setError('');
+
+    try {
+      const updatedTask = await updateTaskDetails(id, task);
+
+      setTasks((currentTasks) =>
+        currentTasks.map((currentTask) =>
+          currentTask.id === updatedTask.id ? updatedTask : currentTask
+        )
+      );
+    } catch {
+      setError('Could not update the task.');
+      throw new Error('Update task failed');
+    }
+  }
+
   async function handleDeleteTask(id) {
     setError('');
 
@@ -85,6 +109,7 @@ function App() {
           tasks={tasks}
           onCompleteTask={handleCompleteTask}
           onReopenTask={handleReopenTask}
+          onUpdateTask={handleUpdateTask}
           onDeleteTask={handleDeleteTask}
         />
       )}

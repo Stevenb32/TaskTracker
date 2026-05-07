@@ -24,6 +24,19 @@ export function createTask(task) {
   });
 }
 
+export function updateTaskDetails(id, task) {
+  return sendRequest(`/tasks/${id}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      title: task.title,
+      notes: task.notes,
+    }),
+  });
+}
+
 export function completeTask(id) {
   return sendRequest(`/tasks/${id}/complete`, {
     method: 'POST',
