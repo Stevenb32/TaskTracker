@@ -11,8 +11,16 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddOpenApi();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddDbContext<TaskTrackerDbContext>(options => 
-    options.UseInMemoryDatabase("TaskTrackerDb"));
+// in memory Db 
+// builder.Services.AddDbContext<TaskTrackerDbContext>(options => 
+//     options.UseInMemoryDatabase("TaskTrackerDb"));
+
+// use postgres db
+var connectionString = builder.Configuration.GetConnectionString("TaskTrackerDb");
+
+builder.Services.AddDbContext<TaskTrackerDbContext>(options =>
+    options.UseNpgsql(connectionString));
+
 
 builder.Services.AddProblemDetails();
 builder.Services.AddValidation();

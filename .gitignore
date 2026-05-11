@@ -45,3 +45,7 @@ publish/
 
 # Docker
 docker-compose.override.yml
+
+# Personal local SQL scratch files
+*.local.sql
+*.scratch.sql
