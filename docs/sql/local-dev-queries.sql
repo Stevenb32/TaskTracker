@@ -37,3 +37,25 @@ FROM public."Tasks";
 -- EF migration history
 SELECT *
 FROM public."__EFMigrationsHistory";
+
+-- create  task
+INSERT INTO public."Tasks"
+(
+    "Id",
+    "Title",
+    "Notes",
+    "Status",
+    "CreatedAt",
+    "CompletedAt",
+    "UpdatedAt"
+)
+VALUES
+(
+    gen_random_uuid(),
+    'Test task from SQL',
+    'Created directly in Postgres',
+    0,
+    NOW(),
+    NULL,
+    NOW()
+);

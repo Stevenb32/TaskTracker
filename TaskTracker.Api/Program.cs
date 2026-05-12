@@ -27,7 +27,7 @@ builder.Services.AddValidation();
 
 var app = builder.Build();
 
-if (app.Environment.IsDevelopment())
+if (app.Environment.IsDevelopment() || app.Environment.IsEnvironment("E2E"))
 {
     app.MapOpenApi();
 
@@ -37,6 +37,19 @@ if (app.Environment.IsDevelopment())
         options.RoutePrefix = "swagger";
     });
 }
+
+if (app.Environment.IsEnvironment("E2E"))
+{
+    app.MapPost("/testing/reset-db", async (TaskTrackerDbContext db) =>
+    {
+        db.Tasks.RemoveRange(db.Tasks);
+        await db.SaveChangesAsync();
+
+        return Results.NoContent();
+    });
+}
+
+
 
 app.UseExceptionHandler();
 

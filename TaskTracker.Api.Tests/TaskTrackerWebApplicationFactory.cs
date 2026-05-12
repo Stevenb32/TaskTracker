@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using TaskTracker.Api.Data;
@@ -16,6 +17,7 @@ public class TaskTrackerWebApplicationFactory : WebApplicationFactory<Program>
     {
         builder.ConfigureServices(services =>
         {
+            services.RemoveAll(typeof(IDbContextOptionsConfiguration<TaskTrackerDbContext>));
             services.RemoveAll(typeof(DbContextOptions<TaskTrackerDbContext>));
 
             services.AddDbContext<TaskTrackerDbContext>(options =>

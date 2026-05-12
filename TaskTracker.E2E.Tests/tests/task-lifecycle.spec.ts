@@ -1,5 +1,10 @@
 import { test, expect } from '@playwright/test';
 
+test.beforeEach(async ({ request }) => {
+  await request.post('http://localhost:5127/testing/reset-db');
+});
+
+
 test('user can create, update, complete, reopen, and delete a task', async ({ page }) => {
   await page.goto('http://localhost:5173/');
 

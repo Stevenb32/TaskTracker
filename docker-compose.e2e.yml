@@ -1,0 +1,15 @@
+services:
+  tasktracker-db-e2e:
+    image: postgres:17
+    container_name: tasktracker-postgres-e2e
+    environment:
+      POSTGRES_DB: tasktracker_e2e
+      POSTGRES_USER: tasktracker_user
+      POSTGRES_PASSWORD: tasktracker_password
+    ports:
+      - "5433:5432"
+    volumes:
+      - tasktracker_postgres_e2e_data:/var/lib/postgresql/data
+
+volumes:
+  tasktracker_postgres_e2e_data:
