@@ -42,13 +42,6 @@ dotnet run --project TaskTracker.Api --launch-profile e2e
 docker compose -f docker-compose.e2e.yml up -d
 ```
 
-#### Add E2E Migration
-
-```powershell
-$env:ASPNETCORE_ENVIRONMENT="E2E"
-dotnet ef migrations add MigrationName --project TaskTracker.Api --startup-project TaskTracker.Api
-```
-
 #### Update E2E DB
 
 ```powershell
@@ -75,4 +68,6 @@ cd .\TaskTracker.E2E.Tests\
 npm install
 npx playwright test
 npx playwright test --ui
+
+playwright.config.ts has a webServer configured to run the backend and frontend before the tests run
 ```
