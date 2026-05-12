@@ -10,6 +10,28 @@ SELECT
 FROM public."Tasks"
 LIMIT 1000;
 
+-- create  task
+INSERT INTO public."Tasks"
+(
+    "Id",
+    "Title",
+    "Notes",
+    "Status",
+    "CreatedAt",
+    "CompletedAt",
+    "UpdatedAt"
+)
+VALUES
+(
+    gen_random_uuid(),
+    'Test task from SQL',
+    'Created directly in Postgres',
+    0,
+    NOW(),
+    NULL,
+    NOW()
+);
+
 -- select by id
 SELECT *
 FROM public."Tasks"
@@ -38,24 +60,3 @@ FROM public."Tasks";
 SELECT *
 FROM public."__EFMigrationsHistory";
 
--- create  task
-INSERT INTO public."Tasks"
-(
-    "Id",
-    "Title",
-    "Notes",
-    "Status",
-    "CreatedAt",
-    "CompletedAt",
-    "UpdatedAt"
-)
-VALUES
-(
-    gen_random_uuid(),
-    'Test task from SQL',
-    'Created directly in Postgres',
-    0,
-    NOW(),
-    NULL,
-    NOW()
-);

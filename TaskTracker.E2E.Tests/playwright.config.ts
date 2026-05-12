@@ -70,10 +70,26 @@ export default defineConfig({
     // },
   ],
 
-  /* Run your local dev server before starting the tests */
-  // webServer: {
-  //   command: 'npm run start',
-  //   url: 'http://localhost:3000',
-  //   reuseExistingServer: !process.env.CI,
-  // },
+  /* Run your local dev server before starting the tests */  
+   webServer: [
+    // {
+    //  command: 'npm run start',
+    //  url: 'http://localhost:3000',
+    //  reuseExistingServer: !process.env.CI,
+    // },
+
+    /* Run API and UI before starting the tests */
+    {
+      command: 'dotnet run --project ../TaskTracker.Api --launch-profile e2e',
+      url: 'http://localhost:5127',
+      reuseExistingServer: !process.env.CI,
+      timeout: 120 * 1000,
+    },    
+    {
+      command: 'npm run dev --prefix ../TaskTracker.Ui',
+      url: 'http://localhost:5173',
+      reuseExistingServer: !process.env.CI,
+      timeout: 120 * 1000,
+    },
+   ],   
 });
