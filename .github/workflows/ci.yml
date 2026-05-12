@@ -1,0 +1,30 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  dotnet-tests:
+    name: Build and test .NET
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore
+        run: dotnet restore TaskTracker.sln
+
+      - name: Build
+        run: dotnet build TaskTracker.sln --configuration Release --no-restore
+
+      - name: Test
+        run: dotnet test TaskTracker.sln --configuration Release --no-build
