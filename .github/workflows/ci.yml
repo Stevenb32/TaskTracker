@@ -28,3 +28,58 @@ jobs:
 
       - name: Test
         run: dotnet test TaskTracker.slnx --configuration Release --no-build
+
+  playwright-e2e:
+    name: Playwright E2E
+    runs-on: ubuntu-latest
+    needs: dotnet-tests
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Restore .NET dependencies
+        run: dotnet restore TaskTracker.slnx
+
+      - name: Install EF Core CLI
+        run: dotnet tool install --global dotnet-ef
+
+      - name: Start E2E database
+        run: docker compose -f docker-compose.e2e.yml up -d
+
+      - name: Update E2E database
+        run: dotnet ef database update --project TaskTracker.Api --startup-project TaskTracker.Api
+        env:
+          ASPNETCORE_ENVIRONMENT: E2E
+
+      - name: Install frontend dependencies
+        working-directory: TaskTracker.Ui
+        run: npm ci
+
+      - name: Install E2E dependencies
+        working-directory: TaskTracker.E2E.Tests
+        run: npm ci
+
+      - name: Install Playwright browsers
+        working-directory: TaskTracker.E2E.Tests
+        run: npx playwright install --with-deps
+
+      - name: Run Playwright tests
+        working-directory: TaskTracker.E2E.Tests
+        run: npx playwright test --project=chromium
+        env:
+          ASPNETCORE_ENVIRONMENT: E2E
+
+      - name: Stop E2E database
+        if: always()
+        run: docker compose -f docker-compose.e2e.yml down

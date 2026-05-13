@@ -11,7 +11,7 @@ dotnet run --project TaskTracker.Api --launch-profile http
 #### Run Dev DB
 
 ```powershell
-docker compose up -d
+docker compose -f docker-compose.dev.yml up -d
 ```
 
 #### Add Dev Migration
