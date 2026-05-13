@@ -23,7 +23,7 @@ services:
       ASPNETCORE_URLS: http://+:8080
       ConnectionStrings__TaskTrackerDb: Host=tasktracker-db-prod;Port=5432;Database=tasktracker_prod;Username=tasktracker_prod;Password=tasktracker_password
     ports:
-      - "8080:8080"
+      - "8082:8080"
 
   tasktracker-ui-prod:
     build:
@@ -33,7 +33,7 @@ services:
     depends_on:
       - tasktracker-api-prod
     ports:
-      - "3000:80"
+      - "3002:80"
 
 volumes:
   tasktracker_postgres_prod_data:
