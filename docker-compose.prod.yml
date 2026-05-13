@@ -1,0 +1,39 @@
+services:
+  tasktracker-db-prod:
+    image: postgres:17
+    container_name: tasktracker-db-prod
+    environment:
+      POSTGRES_DB: tasktracker_prod
+      POSTGRES_USER: tasktracker_prod
+      POSTGRES_PASSWORD: tasktracker_password
+    ports:
+      - "5434:5432"
+    volumes:
+      - tasktracker_postgres_prod_data:/var/lib/postgresql/data
+
+  tasktracker-api-prod:
+    build:
+      context: .
+      dockerfile: TaskTracker.Api/Dockerfile
+    container_name: tasktracker-api-prod
+    depends_on:
+      - tasktracker-db-prod
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__TaskTrackerDb: Host=tasktracker-db-prod;Port=5432;Database=tasktracker_prod;Username=tasktracker_prod;Password=tasktracker_password
+    ports:
+      - "8080:8080"
+
+  tasktracker-ui-prod:
+    build:
+      context: .
+      dockerfile: TaskTracker.Ui/Dockerfile
+    container_name: tasktracker-ui-prod
+    depends_on:
+      - tasktracker-api-prod
+    ports:
+      - "3000:80"
+
+volumes:
+  tasktracker_postgres_prod_data:
