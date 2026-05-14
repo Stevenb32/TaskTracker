@@ -11,6 +11,8 @@ services:
       - "127.0.0.1:${TASKTRACKER_POSTGRES_HOST_PORT}:5432"
     volumes:
       - tasktracker_postgres_prod_data:/var/lib/postgresql/data
+    networks:
+      - default
 
   tasktracker-api-prod:
     build:
@@ -26,6 +28,9 @@ services:
       ConnectionStrings__TaskTrackerDb: Host=tasktracker-db-prod;Port=5432;Database=${TASKTRACKER_POSTGRES_DB};Username=${TASKTRACKER_POSTGRES_USER};Password=${TASKTRACKER_POSTGRES_PASSWORD}
     ports:
       - "127.0.0.1:${TASKTRACKER_API_HOST_PORT}:8080"
+    networks:
+      - default
+      - steven_web
 
   tasktracker-ui-prod:
     build:
@@ -37,6 +42,13 @@ services:
       - tasktracker-api-prod
     ports:
       - "127.0.0.1:${TASKTRACKER_UI_HOST_PORT}:80"
+    networks:
+      - default
+      - steven_web
 
 volumes:
   tasktracker_postgres_prod_data:
+
+networks:
+  steven_web:
+    external: true
