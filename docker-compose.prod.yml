@@ -2,12 +2,13 @@ services:
   tasktracker-db-prod:
     image: postgres:17
     container_name: tasktracker-db-prod
+    restart: unless-stopped
     environment:
-      POSTGRES_DB: tasktracker_prod
-      POSTGRES_USER: tasktracker_prod
-      POSTGRES_PASSWORD: tasktracker_password
+      POSTGRES_DB: ${TASKTRACKER_POSTGRES_DB}
+      POSTGRES_USER: ${TASKTRACKER_POSTGRES_USER}
+      POSTGRES_PASSWORD: ${TASKTRACKER_POSTGRES_PASSWORD}
     ports:
-      - "5434:5432"
+      - "127.0.0.1:${TASKTRACKER_POSTGRES_HOST_PORT}:5432"
     volumes:
       - tasktracker_postgres_prod_data:/var/lib/postgresql/data
 
@@ -16,24 +17,26 @@ services:
       context: .
       dockerfile: TaskTracker.Api/Dockerfile
     container_name: tasktracker-api-prod
+    restart: unless-stopped
     depends_on:
       - tasktracker-db-prod
     environment:
-      ASPNETCORE_ENVIRONMENT: Production
-      ASPNETCORE_URLS: http://+:8080
-      ConnectionStrings__TaskTrackerDb: Host=tasktracker-db-prod;Port=5432;Database=tasktracker_prod;Username=tasktracker_prod;Password=tasktracker_password
+      ASPNETCORE_ENVIRONMENT: ${TASKTRACKER_ASPNETCORE_ENVIRONMENT}
+      ASPNETCORE_URLS: ${TASKTRACKER_API_URLS}
+      ConnectionStrings__TaskTrackerDb: Host=tasktracker-db-prod;Port=5432;Database=${TASKTRACKER_POSTGRES_DB};Username=${TASKTRACKER_POSTGRES_USER};Password=${TASKTRACKER_POSTGRES_PASSWORD}
     ports:
-      - "8082:8080"
+      - "127.0.0.1:${TASKTRACKER_API_HOST_PORT}:8080"
 
   tasktracker-ui-prod:
     build:
       context: .
       dockerfile: TaskTracker.Ui/Dockerfile
     container_name: tasktracker-ui-prod
+    restart: unless-stopped
     depends_on:
       - tasktracker-api-prod
     ports:
-      - "3002:80"
+      - "127.0.0.1:${TASKTRACKER_UI_HOST_PORT}:80"
 
 volumes:
   tasktracker_postgres_prod_data:
