@@ -52,4 +52,4 @@ docker-compose.override.yml
 *.scratch.sql
 
 Personal Notes
-my-notes*
+docs/my-docs/
