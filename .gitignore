@@ -50,3 +50,6 @@ docker-compose.override.yml
 # Personal local SQL scratch files
 *.local.sql
 *.scratch.sql
+
+Personal Notes
+my-notes*

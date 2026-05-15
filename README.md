@@ -35,7 +35,7 @@ TaskTracker.Ui           React frontend
 Start the API:
 
 ```bash
-dotnet run --project TaskTracker.Api
+dotnet run --project TaskTracker.Api --launch-profile http
 ```
 
 Start the frontend:

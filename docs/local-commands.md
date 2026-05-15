@@ -5,6 +5,7 @@
 ### Env: Dev
 
 ```powershell
+$env:ASPNETCORE_ENVIRONMENT="Development"
 dotnet run --project TaskTracker.Api --launch-profile http
 ```
 
@@ -17,7 +18,7 @@ docker compose -f docker-compose.dev.yml up -d
 #### Add Dev Migration
 
 ```powershell
-$env:ASPNETCORE_ENVIRONMENT="Development"
+
 dotnet ef migrations add MigrationName --project TaskTracker.Api --startup-project TaskTracker.Api
 ```
 
@@ -33,6 +34,7 @@ dotnet ef database update --project TaskTracker.Api --startup-project TaskTracke
 ### Env: E2E
 
 ```powershell
+$env:ASPNETCORE_ENVIRONMENT="E2E"
 dotnet run --project TaskTracker.Api --launch-profile e2e
 ```
 
@@ -54,7 +56,7 @@ dotnet ef database update --project TaskTracker.Api --startup-project TaskTracke
 ## Start Frontend
 
 ```powershell
-cd .\TaskTracker.Ui\
+cd TaskTracker.Ui
 npm install
 npm run dev
 ```
@@ -64,7 +66,7 @@ npm run dev
 ## Run Playwright Tests in E2E
 
 ```powershell
-cd .\TaskTracker.E2E.Tests\
+cd TaskTracker.E2E.Tests
 npm install
 npx playwright test
 npx playwright test --ui
