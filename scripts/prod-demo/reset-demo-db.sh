@@ -47,7 +47,7 @@ docker compose \
     -q \
     -U "$TASKTRACKER_POSTGRES_USER" \
     -d "$TASKTRACKER_POSTGRES_DB" \
-    -f /dev/stdin < scripts/Prod.Demo/seed-demo-db.sql
+    -f /dev/stdin < scripts/prod-demo/seed-demo-db.sql
 
 echo "Database reset complete."
 echo "Deleted task count: $DELETED_TASK_COUNT"
