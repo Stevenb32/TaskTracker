@@ -14,8 +14,11 @@ This guide gets TaskTracker running locally for development.
 
 ```bash
 git clone <repo-url>
+```
+```bash
 cd TaskTracker
 ```
+
 
 ## Install Frontend Dependencies
 
