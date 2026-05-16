@@ -42,32 +42,23 @@ The E2E test covers the main UI workflow: create, edit, complete, reopen, and de
 
 The Playwright config starts the API and UI before the tests run. The E2E database still needs to be running first.
 
-Start the E2E database:
+Start the E2E database from the repo root:
 
 ```bash
 docker compose -f docker-compose.e2e.yml up -d
 ```
 
-Apply the E2E database migrations:
+Apply the E2E database migrations if needed:
 
 ```powershell
 $env:ASPNETCORE_ENVIRONMENT="E2E"
 dotnet ef database update --project TaskTracker.Api --startup-project TaskTracker.Api
 ```
 
-Install dependencies if needed:
-
-```bash
-cd TaskTracker.Ui
-npm install
-cd ../TaskTracker.E2E.Tests
-npm install
-npx playwright install
-```
-
 Run the E2E tests:
 
 ```bash
+cd TaskTracker.E2E.Tests
 npx playwright test
 ```
 
@@ -77,8 +68,40 @@ Run only the configured Chromium project:
 npx playwright test --project=chromium
 ```
 
+Open the Playwright HTML report after a test run:
+
+```bash
+npx playwright show-report
+```
+
+Stop the E2E database:
+
+```bash
+docker compose -f docker-compose.e2e.yml down
+```
+
 ## E2E Database Reset
 
 When the API runs with the `E2E` environment, it exposes `POST /testing/reset-db`.
 
 The Playwright test calls that endpoint before each test so the workflow starts with an empty task table.
+
+## GitHub Actions CI
+
+TaskTracker uses GitHub Actions to run automated checks on pushes and pull requests.
+
+Current CI jobs:
+
+- Build and test .NET
+  - Restores the .NET solution
+  - Builds the backend projects
+  - Runs domain unit tests
+  - Runs API integration tests
+
+- Playwright E2E
+  - Installs frontend and E2E test dependencies
+  - Starts the E2E database
+  - Applies database migrations
+  - Runs the Playwright browser test suite
+
+The goal is to practice a real pull request workflow where code changes are reviewed and automated checks must pass before merging to `main`.

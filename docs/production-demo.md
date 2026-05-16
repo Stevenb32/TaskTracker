@@ -1,8 +1,25 @@
 # Production Demo
 
-The public demo runs the same TaskTracker app with Docker Compose on a Raspberry Pi.
+The public demo runs the same TaskTracker app using Docker Compose.
 
 Live demo: [https://tasktracker.stevenborkowski.dev](https://tasktracker.stevenborkowski.dev)
+
+## Deployment Overview
+
+The public demo is currently hosted on my Raspberry Pi using Docker Compose. The Compose setup is not Raspberry Pi-specific and can run on any host with Docker and Docker Compose installed, assuming the required environment variables, ports, and networking are configured.
+
+Traffic flow:
+
+```text
+Browser
+  -> Cloudflare
+  -> Nginx reverse proxy on the Raspberry Pi
+  -> TaskTracker UI container
+  -> /api requests proxied to the TaskTracker API container
+  -> PostgreSQL container
+```
+
+In my public demo environment, the containers bind host ports to `127.0.0.1` only. This keeps the containers from being exposed directly to the public internet. Public traffic reaches the app through the host-level Nginx reverse proxy.
 
 ## Services
 
@@ -14,14 +31,6 @@ Live demo: [https://tasktracker.stevenborkowski.dev](https://tasktracker.stevenb
 
 The Compose file expects a local `.env` file based on `.env.example`.
 
-Do not commit real production or demo secrets.
-
-## Raspberry Pi Hosting Note
-
-The demo is intended to run on a Raspberry Pi host with Docker and Docker Compose installed.
-
-The production/demo Compose file publishes service ports to `127.0.0.1`, so public traffic should go through the host reverse proxy instead of exposing the containers directly.
-
 ## Nginx And `/api` Routing
 
 The UI container uses `TaskTracker.Ui/nginx.conf`.
@@ -31,7 +40,11 @@ The UI container uses `TaskTracker.Ui/nginx.conf`.
 
 This lets the browser call the API through the same site origin using `/api`.
 
-The production Compose file also attaches the API and UI containers to the external Docker network `steven_web`, which is intended for the host reverse proxy setup.
+## External Docker Network
+
+My deployment uses an external Docker network named `steven_web` so the host reverse proxy can reach the app containers.
+
+This is deployment-specific. If you run this project on another host, you can rename this network, create your own external reverse proxy network, or remove it depending on your Docker and reverse proxy setup.
 
 ## Start Or Update The Demo Stack
 
