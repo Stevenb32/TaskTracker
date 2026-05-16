@@ -6,7 +6,7 @@ using TaskTracker.Api.Endpoints;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Services
+// services
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddOpenApi();
 builder.Services.AddSwaggerGen();
@@ -15,7 +15,7 @@ builder.Services.AddSwaggerGen();
 // builder.Services.AddDbContext<TaskTrackerDbContext>(options => 
 //     options.UseInMemoryDatabase("TaskTrackerDb"));
 
-// use postgres db
+
 var connectionString = builder.Configuration.GetConnectionString("TaskTrackerDb");
 
 builder.Services.AddDbContext<TaskTrackerDbContext>(options =>
@@ -49,11 +49,9 @@ if (app.Environment.IsEnvironment("E2E"))
     });
 }
 
-
-
 app.UseExceptionHandler();
 
-// Endpoints
+// endpoints
 app.MapGet("/", () => Results.Ok("TaskTracker API is running"));
 app.MapGet("/health", () => Results.Ok(new { status = "healthy" }));
 

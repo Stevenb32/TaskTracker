@@ -49,12 +49,9 @@ public static class TaskItemEndpoints
         
 
         return app;
-    }
-
+    }   
     
-    // ===============================================================================================================================    
-    #region Endpoint Handlers
-    // ===============================================================================================================================    
+    // endpoint handlers    
     private static async Task<IResult> CreateTask(TaskItemCreateRequest request, TaskTrackerDbContext db)
     {
         var taskItem = TaskItem.Create(
@@ -164,9 +161,8 @@ public static class TaskItemEndpoints
 
         return Results.NoContent();
     }
-    #endregion
 
-    // mapping Helper
+    // mapping helper
     private static TaskItemResponse ToResponse(TaskItem taskItem)
     {
         return new TaskItemResponse

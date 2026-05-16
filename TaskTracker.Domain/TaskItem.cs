@@ -8,8 +8,6 @@ public enum TaskStatus
 
 public class TaskItem
 {
-    #region Properties
-    // core task state
     public Guid Id { get; private set; }
     public string Title { get; private set; } = string.Empty; // required cannot be null or whitespace
     public string? Notes { get; private set; } // optional user provided notes
@@ -17,9 +15,7 @@ public class TaskItem
     public DateTimeOffset CreatedAt { get; private set; }
     public DateTimeOffset? CompletedAt { get; private set; } // null until the task is completed | if reopened set to null
     public DateTimeOffset? UpdatedAt { get; private set; } // null until first update
-    #endregion
 
-    // for EF Core
     private TaskItem()
     {
     }
@@ -98,9 +94,8 @@ public class TaskItem
     }
 
 
-    // ===============================================================================================================================
+
     // helper methods
-    // =============================================================================================================================== 
     private static void ValidateNow(DateTimeOffset now)
     {
         // reject default timestamps so recorded with a meaningful value
