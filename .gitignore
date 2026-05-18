@@ -54,5 +54,5 @@ docker-compose.override.yml
 *.local.sql
 *.scratch.sql
 
-Personal Notes
+# Personal Notes
 docs/my-docs/

@@ -32,10 +32,10 @@ Live demo: [https://tasktracker.stevenborkowski.dev](https://tasktracker.stevenb
 ## Project Structure
 
 ```text
-TaskTracker.Api           .NET Minimal API
-TaskTracker.Api.Tests     API integration tests
 TaskTracker.Domain        Core task domain logic
 TaskTracker.Domain.Tests  Domain unit tests
+TaskTracker.Api           .NET Minimal API
+TaskTracker.Api.Tests     API integration tests
 TaskTracker.Ui            React frontend
 TaskTracker.E2E.Tests     Playwright E2E tests
 docs                      Setup, testing, and demo notes

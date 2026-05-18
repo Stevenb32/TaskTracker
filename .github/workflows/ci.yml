@@ -66,6 +66,10 @@ jobs:
         working-directory: TaskTracker.Ui
         run: npm ci
 
+      - name: Build frontend
+        working-directory: TaskTracker.Ui
+        run: npm run build
+
       - name: Install E2E dependencies
         working-directory: TaskTracker.E2E.Tests
         run: npm ci
