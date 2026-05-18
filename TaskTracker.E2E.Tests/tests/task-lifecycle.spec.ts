@@ -41,4 +41,6 @@ test('user can create, update, complete, reopen, and delete a task', async ({ pa
 
   // Verify task is gone
   await expect(page.getByText('Buy oat milk')).not.toBeVisible();
+
+  expect(1).toBe(2);
 });
