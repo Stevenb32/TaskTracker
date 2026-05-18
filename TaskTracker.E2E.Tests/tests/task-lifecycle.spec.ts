@@ -40,7 +40,5 @@ test('user can create, update, complete, reopen, and delete a task', async ({ pa
   await page.getByRole('button', { name: 'Delete' }).click();
 
   // Verify task is gone
-  await expect(page.getByText('Buy oat milk')).not.toBeVisible();
-
-  expect(1).toBe(2);
+  await expect(page.getByText('Buy oat milk')).not.toBeVisible();  
 });
