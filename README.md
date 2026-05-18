@@ -1,4 +1,5 @@
 # TaskTracker
+[![CI](https://github.com/Stevenb32/TaskTracker/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/Stevenb32/TaskTracker/actions/workflows/ci.yml)
 
 TaskTracker is a full-stack task management app built as a learning project for backend development, frontend fundamentals, automated testing, Docker, CI, and deployment.
 
