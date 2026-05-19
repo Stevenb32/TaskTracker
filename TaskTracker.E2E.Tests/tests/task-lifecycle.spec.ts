@@ -13,21 +13,36 @@ test('user can create, update, complete, reopen, and delete a task', async ({ pa
   const updatedTitle = `Buy oat milk ${uniqueId}`;
   const updatedNotes = `From Publix ${uniqueId}`;
 
+  let taskId: string;
+
   await page.goto('http://localhost:5173/');
 
   await test.step('Create task', async () => {
     await page.getByRole('textbox', { name: 'Title' }).fill(originalTitle);
     await page.getByRole('textbox', { name: 'Notes' }).fill(originalNotes);
+
+    const createTaskResponsePromise = page.waitForResponse(response =>
+      response.url().includes('/tasks') &&
+      response.request().method() === 'POST' &&
+      response.status() === 201
+    );
+
     await page.getByRole('button', { name: 'Create' }).click();
 
-    const task = page.getByRole('listitem').filter({ has: page.getByRole('heading', { name: originalTitle }) });
+    const createTaskResponse = await createTaskResponsePromise;
+    const createdTask = await createTaskResponse.json();
+
+    taskId = createdTask.id;
+
+    const task = page.getByTestId(`task-item-${taskId}`);    
 
     await expect(task).toBeVisible();
+    await expect(task).toContainText(originalTitle);
     await expect(task).toContainText(originalNotes);
   });  
 
   await test.step('Edit task', async () => {
-    const task = page.getByRole('listitem').filter({ has: page.getByRole('heading', { name: originalTitle }) });
+    const task = page.getByTestId(`task-item-${taskId}`);
 
     await task.getByRole('button', { name: 'Edit' }).click();
 
@@ -36,14 +51,13 @@ test('user can create, update, complete, reopen, and delete a task', async ({ pa
 
     await task.getByRole('button', { name: 'Save' }).click();
 
-    const updatedTask = page.getByRole('listitem').filter({ has: page.getByRole('heading', { name: updatedTitle }) });
-
-    await expect(updatedTask).toBeVisible();
-    await expect(updatedTask).toContainText(updatedNotes);
+    await expect(task).toBeVisible();
+    await expect(task).toContainText(updatedTitle);
+    await expect(task).toContainText(updatedNotes);
   });
 
   await test.step('Complete task', async () => {
-    const task = page.getByRole('listitem').filter({ has: page.getByRole('heading', { name: updatedTitle }) });
+    const task = page.getByTestId(`task-item-${taskId}`);   
 
     await task.getByRole('button', { name: 'Complete' }).click();
 
@@ -51,16 +65,16 @@ test('user can create, update, complete, reopen, and delete a task', async ({ pa
   });
 
 
-  await test.step('Reopen task', async () => {  
-    const task = page.getByRole('listitem').filter({ has: page.getByRole('heading', { name: updatedTitle }) });
+  await test.step('Reopen task', async () => {
+    const task = page.getByTestId(`task-item-${taskId}`);   
 
     await task.getByRole('button', { name: 'Reopen' }).click();
 
-    await expect(task).toContainText('Status: Active');
+    await expect(task).toContainText('Status: Active');    
   });
 
-    await test.step('Delete task', async () => {
-    const task = page.getByRole('listitem').filter({ has: page.getByRole('heading', { name: updatedTitle }) });
+  await test.step('Delete task', async () => {
+    const task = page.getByTestId(`task-item-${taskId}`);   
 
     await task.getByRole('button', { name: 'Delete' }).click();
 

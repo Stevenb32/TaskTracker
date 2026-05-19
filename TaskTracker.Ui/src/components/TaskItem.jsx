@@ -87,7 +87,7 @@ function TaskItem({ task, onCompleteTask, onReopenTask, onUpdateTask, onDeleteTa
   }
 
   return (
-    <li className="border p-4">
+    <li data-testid={`task-item-${task.id}`} className="border p-4">
       {isEditing ? (
         <form onSubmit={saveChanges} className="space-y-3">
           <div>

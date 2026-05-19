@@ -80,7 +80,7 @@ jobs:
 
       - name: Run Playwright tests
         working-directory: TaskTracker.E2E.Tests
-        run: npx playwright test --project=chromium
+        run: npx playwright test
         env:
           ASPNETCORE_ENVIRONMENT: E2E
 
