@@ -1,9 +1,8 @@
 import { test, expect } from "@playwright/test";
+import { resetDbViaApi } from "../helpers/tasks-api";
 
 test.beforeEach(async ({ request }) => {
-  const response = await request.post("http://localhost:5127/testing/reset-db");
-
-  expect(response.status()).toBe(204);
+  await resetDbViaApi(request);
 });
 
 test("user can create, update, complete, reopen, and delete a task", async ({ page }) => {

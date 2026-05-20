@@ -1,10 +1,8 @@
 import { test, expect } from "@playwright/test";
-import { createTaskViaApi, completeTaskViaApi, deleteTaskViaApi } from "../helpers/tasks-api";
+import { resetDbViaApi, createTaskViaApi, completeTaskViaApi, deleteTaskViaApi } from "../helpers/tasks-api";
 
 test.beforeEach(async ({ request }) => {
-  const response = await request.post("http://localhost:5127/testing/reset-db");
-
-  expect(response.status()).toBe(204);
+  await resetDbViaApi(request);
 });
 
 test("created task persists after reload", async ({ page, request }) => {

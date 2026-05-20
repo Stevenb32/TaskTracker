@@ -15,6 +15,12 @@ export type TaskResponse = {
   updatedAt: string | null;
 };
 
+export async function resetDbViaApi(request: APIRequestContext) {
+  const response = await request.post("http://localhost:5127/testing/reset-db");
+
+  expect(response.status()).toBe(204);
+}
+
 export async function createTaskViaApi(request: APIRequestContext, task: CreateTaskRequest): Promise<TaskResponse> {
   const response = await request.post("http://localhost:5127/tasks", {
     data: task,

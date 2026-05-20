@@ -1,10 +1,8 @@
 import { test, expect } from "@playwright/test";
-import { createTaskViaApi } from "../helpers/tasks-api";
+import { resetDbViaApi, createTaskViaApi } from "../helpers/tasks-api";
 
 test.beforeEach(async ({ request }) => {
-  const response = await request.post("http://localhost:5127/testing/reset-db");
-
-  expect(response.status()).toBe(204);
+  await resetDbViaApi(request);
 });
 
 test.describe("Task create validation", () => {
@@ -18,7 +16,7 @@ test.describe("Task create validation", () => {
     await expect(form.getByText("Title is required")).toBeVisible();
   });
 
-  test("shows message when title reaches max length", async ({ page }) => {
+  test("shows title limit message when title reaches 100 characters", async ({ page }) => {
     const titleWith100Chars = "a".repeat(100);
 
     await page.goto("http://localhost:5173/");
@@ -30,7 +28,7 @@ test.describe("Task create validation", () => {
     await expect(form.getByText("Title can only be 100 characters")).toBeVisible();
   });
 
-  test("shows message when notes reaches max length", async ({ page }) => {
+  test("shows notes limit message when notes reaches 500 characters", async ({ page }) => {
     const notesWith500Chars = "a".repeat(500);
 
     await page.goto("http://localhost:5173/");
