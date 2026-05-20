@@ -1,9 +1,45 @@
 # TaskTracker
 [![CI](https://github.com/Stevenb32/TaskTracker/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/Stevenb32/TaskTracker/actions/workflows/ci.yml)
 
-TaskTracker is a full-stack task management app built as a learning project for backend development, frontend fundamentals, automated testing, Docker, CI, and deployment.
+TaskTracker is a full-stack QA automation portfolio project built to demonstrate practical SDET skills across backend testing, API integration testing, UI automation, Dockerized test environments, CI, and deployment.
+
+The app is intentionally small, but the testing and delivery workflow are designed to mirror real-world quality practices: domain unit tests, API integration tests, Playwright E2E tests, isolated test data, database reset support, and GitHub Actions CI.
 
 Live demo: [https://tasktracker.stevenborkowski.dev](https://tasktracker.stevenborkowski.dev)
+
+## Testing Strategy
+
+This project uses a layered testing approach:
+
+- Domain unit tests verify task business rules without API, UI, or database dependencies.
+- API integration tests verify HTTP behavior using `WebApplicationFactory`.
+- Playwright E2E tests verify user workflows through the React UI against a real PostgreSQL E2E database.
+- GitHub Actions runs automated checks for .NET tests and Playwright E2E tests on pushes and pull requests.
+
+## Quality Practices Demonstrated
+
+- Layered test coverage across domain, API, and UI
+- Playwright E2E tests using isolated test data
+- E2E database reset endpoint for reliable, repeatable tests
+- Docker Compose environments for development and E2E testing
+- GitHub Actions CI for automated validation
+- API integration tests using `WebApplicationFactory`
+- Validation and boundary testing for task input rules
+- Public demo environment with reset and seed support
+
+## Project Preview
+
+### Application UI
+
+![TaskTracker app showing active and completed tasks](docs/images/tasktracker-app.png)
+
+### Playwright E2E Report
+
+![Playwright report showing 30 passing tests across Chromium, Firefox, and WebKit](docs/images/playwright-report.png)
+
+### GitHub Actions CI
+
+![GitHub Actions CI showing passing .NET and Playwright E2E jobs](docs/images/github-actions-ci.png)
 
 ## Tech Stack
 

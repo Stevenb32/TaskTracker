@@ -1,5 +1,8 @@
 import { useState } from 'react';
 
+const TITLE_MAX_LENGTH = 100;
+const NOTES_MAX_LENGTH = 500;
+
 function formatDate(value) {
   if (!value) {
     return '';
@@ -12,20 +15,36 @@ function TaskItem({ task, onCompleteTask, onReopenTask, onUpdateTask, onDeleteTa
   const [isEditing, setIsEditing] = useState(false);
   const [title, setTitle] = useState(task.title);
   const [notes, setNotes] = useState(task.notes || '');
-  const [validationMessage, setValidationMessage] = useState('');
+  const [showTitleRequired, setShowTitleRequired] = useState(false);
+  const [titleTouched, setTitleTouched] = useState(false);
+  const [notesTouched, setNotesTouched] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+
+  const titleRequiredMessage = showTitleRequired && !title.trim() ? 'Title is required' : '';
+  const titleLimitMessage = titleTouched && title.length === TITLE_MAX_LENGTH
+      ? `Title can only be ${TITLE_MAX_LENGTH} characters` : '';
+  const notesLimitMessage = notesTouched && notes.length === NOTES_MAX_LENGTH
+      ? `Notes can only be ${NOTES_MAX_LENGTH} characters` : '';
+  const titleMessage = titleRequiredMessage || titleLimitMessage;
+  const notesMessage = notesLimitMessage;
+  const titleClassName = `w-full border px-2 py-1 ${titleMessage ? 'border-red-700' : ''}`;
+  const notesClassName = `w-full border px-2 py-1 ${notesMessage ? 'border-red-700' : ''}`;
 
   function startEditing() {
     setTitle(task.title);
     setNotes(task.notes || '');
-    setValidationMessage('');
+    setShowTitleRequired(false);
+    setTitleTouched(false);
+    setNotesTouched(false);
     setIsEditing(true);
   }
 
   function cancelEditing() {
     setTitle(task.title);
     setNotes(task.notes || '');
-    setValidationMessage('');
+    setShowTitleRequired(false);
+    setTitleTouched(false);
+    setNotesTouched(false);
     setIsEditing(false);
   }
 
@@ -36,11 +55,19 @@ function TaskItem({ task, onCompleteTask, onReopenTask, onUpdateTask, onDeleteTa
     const trimmedNotes = notes.trim();
 
     if (!trimmedTitle) {
-      setValidationMessage('Title is required.');
+      setShowTitleRequired(true);
       return;
     }
 
-    setValidationMessage('');
+    if (title.length > TITLE_MAX_LENGTH) {
+      return;
+    }
+
+    if (notes.length > NOTES_MAX_LENGTH) {
+      return;
+    }
+
+    setShowTitleRequired(false);
     setIsSaving(true);
 
     try {
@@ -49,6 +76,8 @@ function TaskItem({ task, onCompleteTask, onReopenTask, onUpdateTask, onDeleteTa
         notes: trimmedNotes || null,
       });
 
+      setTitleTouched(false);
+      setNotesTouched(false);
       setIsEditing(false);
     } catch {
       // App shows the error message.
@@ -58,7 +87,7 @@ function TaskItem({ task, onCompleteTask, onReopenTask, onUpdateTask, onDeleteTa
   }
 
   return (
-    <li className="border p-4">
+    <li data-testid={`task-item-${task.id}`} className="border p-4">
       {isEditing ? (
         <form onSubmit={saveChanges} className="space-y-3">
           <div>
@@ -68,10 +97,15 @@ function TaskItem({ task, onCompleteTask, onReopenTask, onUpdateTask, onDeleteTa
             <input
               id={`edit-title-${task.id}`}
               value={title}
-              onChange={(event) => setTitle(event.target.value)}
-              className="w-full border px-2 py-1"
-              maxLength="100"
+              onFocus={() => setTitleTouched(true)}
+              onChange={(event) => {
+                setTitleTouched(true);
+                setTitle(event.target.value);
+              }}
+              className={titleClassName}
+              maxLength={TITLE_MAX_LENGTH}
             />
+            {titleMessage && <p className="mt-1 text-sm text-red-700">{titleMessage}</p>}
           </div>
 
           <div>
@@ -81,14 +115,17 @@ function TaskItem({ task, onCompleteTask, onReopenTask, onUpdateTask, onDeleteTa
             <textarea
               id={`edit-notes-${task.id}`}
               value={notes}
-              onChange={(event) => setNotes(event.target.value)}
-              className="w-full border px-2 py-1"
-              maxLength="500"
+              onFocus={() => setNotesTouched(true)}
+              onChange={(event) => {
+                setNotesTouched(true);
+                setNotes(event.target.value);
+              }}
+              className={notesClassName}
+              maxLength={NOTES_MAX_LENGTH}
               rows="3"
             />
+            {notesMessage && <p className="mt-1 text-sm text-red-700">{notesMessage}</p>}
           </div>
-
-          {validationMessage && <p className="text-sm text-red-700">{validationMessage}</p>}
 
           <div className="flex gap-2">
             <button

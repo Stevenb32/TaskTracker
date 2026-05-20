@@ -1,44 +1,83 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from "@playwright/test";
+import { resetDbViaApi } from "../helpers/tasks-api";
 
 test.beforeEach(async ({ request }) => {
-  await request.post('http://localhost:5127/testing/reset-db');
+  await resetDbViaApi(request);
 });
 
+test("user can create, update, complete, reopen, and delete a task", async ({ page }) => {
+  const uniqueId = Date.now();
 
-test('user can create, update, complete, reopen, and delete a task', async ({ page }) => {
-  await page.goto('http://localhost:5173/');
+  const originalTitle = `Buy milk ${uniqueId}`;
+  const originalNotes = `From the store ${uniqueId}`;
 
-  // Create task
-  await page.getByRole('textbox', { name: 'Title' }).fill('Buy milk');
-  await page.getByRole('textbox', { name: 'Notes' }).fill('From the store');
-  await page.getByRole('button', { name: 'Create' }).click();
+  const updatedTitle = `Buy oat milk ${uniqueId}`;
+  const updatedNotes = `From Publix ${uniqueId}`;
 
-  // Verify task appears
-  await expect(page.getByRole('heading', { name: 'Buy milk' })).toBeVisible();
-  await expect(page.getByText('From the store')).toBeVisible();
+  let taskId: string;
 
-  // Update task details
-  await page.getByRole('button', { name: 'Edit' }).click();
-  await page.getByRole('listitem').getByRole('textbox', { name: 'Title' }).fill('Buy oat milk');
-  await page.getByRole('listitem').getByRole('textbox', { name: 'Notes' }).fill('From Publix');
-//   await page.getByLabel('Notes').fill('From Publix');
-  await page.getByRole('button', { name: 'Save' }).click();
+  await page.goto("http://localhost:5173/");
 
-  // Verify updated task appears
-  await expect(page.getByText('Buy oat milk')).toBeVisible();
-  await expect(page.getByText('From Publix')).toBeVisible();
+  await test.step("Create task", async () => {
+    const form = page.locator('form');
 
-  // Complete task
-  await page.getByRole('button', { name: 'Complete' }).click();
-  await expect(page.getByText('Status: Completed')).toBeVisible();
+    await form.getByRole("textbox", { name: "Title" }).fill(originalTitle);
+    await form.getByRole("textbox", { name: "Notes" }).fill(originalNotes);
 
-  // Reopen task
-  await page.getByRole('button', { name: 'Reopen' }).click();
-  await expect(page.getByText('Status: Active')).toBeVisible();
+    const createTaskResponsePromise = page.waitForResponse(
+      (response) => response.url().includes("/tasks") && response.request().method() === "POST" && response.status() === 201,
+    );
 
-  // Delete task
-  await page.getByRole('button', { name: 'Delete' }).click();
+    await page.getByRole("button", { name: "Create Task" }).click();
 
-  // Verify task is gone
-  await expect(page.getByText('Buy oat milk')).not.toBeVisible();  
+    const createTaskResponse = await createTaskResponsePromise;
+    const createdTask = await createTaskResponse.json();
+
+    taskId = createdTask.id;
+
+    const taskItem = page.getByTestId(`task-item-${taskId}`);
+
+    await expect(taskItem).toBeVisible();
+    await expect(taskItem).toContainText(originalTitle);
+    await expect(taskItem).toContainText(originalNotes);
+  });
+
+  await test.step("Edit task", async () => {
+    const taskItem = page.getByTestId(`task-item-${taskId}`);
+
+    await taskItem.getByRole("button", { name: "Edit" }).click();
+
+    await taskItem.getByRole("textbox", { name: "Title" }).fill(updatedTitle);
+    await taskItem.getByRole("textbox", { name: "Notes" }).fill(updatedNotes);
+
+    await taskItem.getByRole("button", { name: "Save" }).click();
+
+    await expect(taskItem).toBeVisible();
+    await expect(taskItem).toContainText(updatedTitle);
+    await expect(taskItem).toContainText(updatedNotes);
+  });
+
+  await test.step("Complete task", async () => {
+    const taskItem = page.getByTestId(`task-item-${taskId}`);
+
+    await taskItem.getByRole("button", { name: "Complete" }).click();
+
+    await expect(taskItem).toContainText("Status: Completed");
+  });
+
+  await test.step("Reopen task", async () => {
+    const taskItem = page.getByTestId(`task-item-${taskId}`);
+
+    await taskItem.getByRole("button", { name: "Reopen" }).click();
+
+    await expect(taskItem).toContainText("Status: Active");
+  });
+
+  await test.step("Delete task", async () => {
+    const taskItem = page.getByTestId(`task-item-${taskId}`);
+
+    await taskItem.getByRole("button", { name: "Delete" }).click();
+
+    await expect(taskItem).not.toBeVisible();
+  });
 });
