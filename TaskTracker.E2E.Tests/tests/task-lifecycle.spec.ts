@@ -1,10 +1,12 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from "@playwright/test";
 
 test.beforeEach(async ({ request }) => {
-  await request.post('http://localhost:5127/testing/reset-db');
+  const response = await request.post("http://localhost:5127/testing/reset-db");
+
+  expect(response.status()).toBe(204);
 });
 
-test('user can create, update, complete, reopen, and delete a task', async ({ page }) => {
+test("user can create, update, complete, reopen, and delete a task", async ({ page }) => {
   const uniqueId = Date.now();
 
   const originalTitle = `Buy milk ${uniqueId}`;
@@ -15,70 +17,68 @@ test('user can create, update, complete, reopen, and delete a task', async ({ pa
 
   let taskId: string;
 
-  await page.goto('http://localhost:5173/');
+  await page.goto("http://localhost:5173/");
 
-  await test.step('Create task', async () => {
-    await page.getByRole('textbox', { name: 'Title' }).fill(originalTitle);
-    await page.getByRole('textbox', { name: 'Notes' }).fill(originalNotes);
+  await test.step("Create task", async () => {
+    const form = page.locator('form');
 
-    const createTaskResponsePromise = page.waitForResponse(response =>
-      response.url().includes('/tasks') &&
-      response.request().method() === 'POST' &&
-      response.status() === 201
+    await form.getByRole("textbox", { name: "Title" }).fill(originalTitle);
+    await form.getByRole("textbox", { name: "Notes" }).fill(originalNotes);
+
+    const createTaskResponsePromise = page.waitForResponse(
+      (response) => response.url().includes("/tasks") && response.request().method() === "POST" && response.status() === 201,
     );
 
-    await page.getByRole('button', { name: 'Create' }).click();
+    await page.getByRole("button", { name: "Create Task" }).click();
 
     const createTaskResponse = await createTaskResponsePromise;
     const createdTask = await createTaskResponse.json();
 
     taskId = createdTask.id;
 
-    const task = page.getByTestId(`task-item-${taskId}`);    
+    const taskItem = page.getByTestId(`task-item-${taskId}`);
 
-    await expect(task).toBeVisible();
-    await expect(task).toContainText(originalTitle);
-    await expect(task).toContainText(originalNotes);
-  });  
-
-  await test.step('Edit task', async () => {
-    const task = page.getByTestId(`task-item-${taskId}`);
-
-    await task.getByRole('button', { name: 'Edit' }).click();
-
-    await task.getByRole('textbox', { name: 'Title' }).fill(updatedTitle);
-    await task.getByRole('textbox', { name: 'Notes' }).fill(updatedNotes);
-
-    await task.getByRole('button', { name: 'Save' }).click();
-
-    await expect(task).toBeVisible();
-    await expect(task).toContainText(updatedTitle);
-    await expect(task).toContainText(updatedNotes);
+    await expect(taskItem).toBeVisible();
+    await expect(taskItem).toContainText(originalTitle);
+    await expect(taskItem).toContainText(originalNotes);
   });
 
-  await test.step('Complete task', async () => {
-    const task = page.getByTestId(`task-item-${taskId}`);   
+  await test.step("Edit task", async () => {
+    const taskItem = page.getByTestId(`task-item-${taskId}`);
 
-    await task.getByRole('button', { name: 'Complete' }).click();
+    await taskItem.getByRole("button", { name: "Edit" }).click();
 
-    await expect(task).toContainText('Status: Completed');
+    await taskItem.getByRole("textbox", { name: "Title" }).fill(updatedTitle);
+    await taskItem.getByRole("textbox", { name: "Notes" }).fill(updatedNotes);
+
+    await taskItem.getByRole("button", { name: "Save" }).click();
+
+    await expect(taskItem).toBeVisible();
+    await expect(taskItem).toContainText(updatedTitle);
+    await expect(taskItem).toContainText(updatedNotes);
   });
 
+  await test.step("Complete task", async () => {
+    const taskItem = page.getByTestId(`task-item-${taskId}`);
 
-  await test.step('Reopen task', async () => {
-    const task = page.getByTestId(`task-item-${taskId}`);   
+    await taskItem.getByRole("button", { name: "Complete" }).click();
 
-    await task.getByRole('button', { name: 'Reopen' }).click();
-
-    await expect(task).toContainText('Status: Active');    
+    await expect(taskItem).toContainText("Status: Completed");
   });
 
-  await test.step('Delete task', async () => {
-    const task = page.getByTestId(`task-item-${taskId}`);   
+  await test.step("Reopen task", async () => {
+    const taskItem = page.getByTestId(`task-item-${taskId}`);
 
-    await task.getByRole('button', { name: 'Delete' }).click();
+    await taskItem.getByRole("button", { name: "Reopen" }).click();
 
-    await expect(task).not.toBeVisible(); 
+    await expect(taskItem).toContainText("Status: Active");
   });
 
+  await test.step("Delete task", async () => {
+    const taskItem = page.getByTestId(`task-item-${taskId}`);
+
+    await taskItem.getByRole("button", { name: "Delete" }).click();
+
+    await expect(taskItem).not.toBeVisible();
+  });
 });

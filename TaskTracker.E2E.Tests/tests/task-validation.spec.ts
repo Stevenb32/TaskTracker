@@ -1,74 +1,116 @@
-// import { test, expect } from '@playwright/test';
+import { test, expect } from "@playwright/test";
+import { createTaskViaApi } from "../helpers/tasks-api";
 
-// test.beforeEach(async ({ request }) => {
-//   await request.post('http://localhost:5127/testing/reset-db');
-// });
+test.beforeEach(async ({ request }) => {
+  const response = await request.post("http://localhost:5127/testing/reset-db");
 
-// test('create title required', async ({ page }) => {
-//   await page.goto('http://localhost:5173/');
+  expect(response.status()).toBe(204);
+});
 
-//   // Click Create Task button
+test.describe("Task create validation", () => {
+  test("shows validation when title is required", async ({ page }) => {
+    await page.goto("http://localhost:5173/");
 
-//   // Verfiy title required message displays
+    const form = page.locator("form");
 
-// });
+    await form.getByRole("button", { name: "Create Task" }).click();
 
-// test('create title max length message', async ({ page }) => {
-//   await page.goto('http://localhost:5173/');
+    await expect(form.getByText("Title is required")).toBeVisible();
+  });
 
-//   // send 100 keys to title
+  test("shows message when title reaches max length", async ({ page }) => {
+    const titleWith100Chars = "a".repeat(100);
 
-//   // verfiy title max length message displays
+    await page.goto("http://localhost:5173/");
 
-// }); 
+    const form = page.locator("form");
 
-// test('create notes max length message', async ({ page }) => {
-//   await page.goto('http://localhost:5173/');
+    await form.getByRole("textbox", { name: "Title" }).fill(titleWith100Chars);
 
-//   // send 500 keys to notes
+    await expect(form.getByText("Title can only be 100 characters")).toBeVisible();
+  });
 
-//   // verfiy notes max length message displays
+  test("shows message when notes reaches max length", async ({ page }) => {
+    const notesWith500Chars = "a".repeat(500);
 
-// }); 
+    await page.goto("http://localhost:5173/");
 
-// test('edit title required', async ({ page }) => {
-//   await page.goto('http://localhost:5173/');
+    const form = page.locator("form");
 
-//   // create valid task
+    await form.getByRole("textbox", { name: "Notes" }).fill(notesWith500Chars);
 
-//   // click edit task button
+    await expect(form.getByText("Notes can only be 500 characters")).toBeVisible();
+  });
+});
 
-//   // erase title
+test.describe("Task edit validation", () => {
+  test("shows validation when title is required while editing", async ({ page, request }) => {
+    const uniqueId = Date.now();
 
-//   // click save button
+    const originalTitle = `Buy milk ${uniqueId}`;
+    const originalNotes = `From the store ${uniqueId}`;
 
-//   // verfiy title required message displays
+    const createdTask = await createTaskViaApi(request, {
+      title: originalTitle,
+      notes: originalNotes,
+    });
 
-// }); 
+    await page.goto("http://localhost:5173/");
 
-// test('edit title max length messagee', async ({ page }) => {
-//   await page.goto('http://localhost:5173/');
+    const taskItem = page.getByTestId(`task-item-${createdTask.id}`);
 
-//   // create valid task
+    await taskItem.getByRole("button", { name: "Edit" }).click();
 
-//   // click edit task button
+    await taskItem.getByRole("textbox", { name: "Title" }).fill("");
 
-//   // erase title / send 100 chars
+    await taskItem.getByRole("button", { name: "Save" }).click();
 
-//   // verfiy title length message displays
+    await expect(taskItem.getByText("Title is required")).toBeVisible();
+  });
 
-// }); 
+  test("shows message when title reaches max length while editing", async ({ page, request }) => {
+    const uniqueId = Date.now();
+    const titleWith100Chars = "a".repeat(100);
 
+    const originalTitle = `Buy milk ${uniqueId}`;
+    const originalNotes = `From the store ${uniqueId}`;
 
-// test('edit notes max length message', async ({ page }) => {
-//   await page.goto('http://localhost:5173/');
+    const createdTask = await createTaskViaApi(request, {
+      title: originalTitle,
+      notes: originalNotes,
+    });
 
-//   // create valid task
+    await page.goto("http://localhost:5173/");
 
-//   // click edit task button
+    const taskItem = page.getByTestId(`task-item-${createdTask.id}`);
 
-//   // erase notes / send 500 chars
+    await taskItem.getByRole("button", { name: "Edit" }).click();
 
-//   // verfiy notes length message displays
+    await taskItem.getByRole("textbox", { name: "Title" }).fill(titleWith100Chars);
 
-// }); 
+    await expect(taskItem.getByText("Title can only be 100 characters")).toBeVisible();
+  });
+
+  test("shows message when notes reaches max length while editing", async ({ page, request }) => {
+    const uniqueId = Date.now();
+    const notesWith500Chars = "a".repeat(500);
+
+    const originalTitle = `Buy milk ${uniqueId}`;
+    const originalNotes = `From the store ${uniqueId}`;
+
+    const createdTask = await createTaskViaApi(request, {
+      title: originalTitle,
+      notes: originalNotes,
+    });
+
+    await page.goto("http://localhost:5173/");
+
+    const taskItem = page.getByTestId(`task-item-${createdTask.id}`);
+
+    await taskItem.getByRole("button", { name: "Edit" }).click();
+
+    await taskItem.getByRole("textbox", { name: "Notes" }).fill(notesWith500Chars);
+
+    await expect(taskItem.getByText("Notes can only be 500 characters")).toBeVisible();
+  });
+});
