@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+ import { test, expect } from "@playwright/test";
 import { resetDbViaApi } from "../helpers/tasks-api";
 
 test.beforeEach(async ({ request }) => {
@@ -16,7 +16,7 @@ test("user can create, update, complete, reopen, and delete a task", async ({ pa
 
   let taskId: string;
 
-  await page.goto("http://localhost:5173/");
+  await page.goto("/");
 
   await test.step("Create task", async () => {
     const form = page.locator('form');

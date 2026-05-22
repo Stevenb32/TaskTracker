@@ -1,29 +1,22 @@
-import { useEffect, useState } from 'react';
-import {
-  completeTask,
-  createTask,
-  deleteTask,
-  getTasks,
-  reopenTask,
-  updateTaskDetails,
-} from './api/tasksApi.js';
-import TaskForm from './components/TaskForm.jsx';
-import TaskList from './components/TaskList.jsx';
+import { useEffect, useState } from "react";
+import { completeTask, createTask, deleteTask, getTasks, reopenTask, updateTaskDetails } from "./api/tasksApi.js";
+import TaskForm from "./components/TaskForm.jsx";
+import TaskList from "./components/TaskList.jsx";
 
 function App() {
   const [tasks, setTasks] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
   async function loadTasks() {
     setIsLoading(true);
-    setError('');
+    setError("");
 
     try {
       const taskList = await getTasks();
       setTasks(taskList);
     } catch {
-      setError('Could not load tasks. Make sure the API is running.');
+      setError("Could not load tasks. Make sure the API is running.");
     } finally {
       setIsLoading(false);
     }
@@ -34,64 +27,60 @@ function App() {
   }, []);
 
   async function handleCreateTask(task) {
-    setError('');
+    setError("");
 
     try {
       await createTask(task);
       await loadTasks();
     } catch {
-      setError('Could not create the task.');
-      throw new Error('Create task failed');
+      setError("Could not create the task.");
+      throw new Error("Create task failed");
     }
   }
 
   async function handleCompleteTask(id) {
-    setError('');
+    setError("");
 
     try {
       await completeTask(id);
       await loadTasks();
     } catch {
-      setError('Could not complete the task.');
+      setError("Could not complete the task.");
     }
   }
 
   async function handleReopenTask(id) {
-    setError('');
+    setError("");
 
     try {
       await reopenTask(id);
       await loadTasks();
     } catch {
-      setError('Could not reopen the task.');
+      setError("Could not reopen the task.");
     }
   }
 
   async function handleUpdateTask(id, task) {
-    setError('');
+    setError("");
 
     try {
       const updatedTask = await updateTaskDetails(id, task);
 
-      setTasks((currentTasks) =>
-        currentTasks.map((currentTask) =>
-          currentTask.id === updatedTask.id ? updatedTask : currentTask
-        )
-      );
+      setTasks((currentTasks) => currentTasks.map((currentTask) => (currentTask.id === updatedTask.id ? updatedTask : currentTask)));
     } catch {
-      setError('Could not update the task.');
-      throw new Error('Update task failed');
+      setError("Could not update the task.");
+      throw new Error("Update task failed");
     }
   }
 
   async function handleDeleteTask(id) {
-    setError('');
+    setError("");
 
     try {
       await deleteTask(id);
       await loadTasks();
     } catch {
-      setError('Could not delete the task.');
+      setError("Could not delete the task.");
     }
   }
 

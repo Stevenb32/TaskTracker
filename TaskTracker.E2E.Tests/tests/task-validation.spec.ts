@@ -7,7 +7,7 @@ test.beforeEach(async ({ request }) => {
 
 test.describe("Task create validation", () => {
   test("shows validation when title is required", async ({ page }) => {
-    await page.goto("http://localhost:5173/");
+    await page.goto("/");
 
     const form = page.locator("form");
 
@@ -19,7 +19,7 @@ test.describe("Task create validation", () => {
   test("shows title limit message when title reaches 100 characters", async ({ page }) => {
     const titleWith100Chars = "a".repeat(100);
 
-    await page.goto("http://localhost:5173/");
+    await page.goto("/");
 
     const form = page.locator("form");
 
@@ -31,7 +31,7 @@ test.describe("Task create validation", () => {
   test("shows notes limit message when notes reaches 500 characters", async ({ page }) => {
     const notesWith500Chars = "a".repeat(500);
 
-    await page.goto("http://localhost:5173/");
+    await page.goto("/");
 
     const form = page.locator("form");
 
@@ -53,7 +53,7 @@ test.describe("Task edit validation", () => {
       notes: originalNotes,
     });
 
-    await page.goto("http://localhost:5173/");
+    await page.goto("/");
 
     const taskItem = page.getByTestId(`task-item-${createdTask.id}`);
 
@@ -78,7 +78,7 @@ test.describe("Task edit validation", () => {
       notes: originalNotes,
     });
 
-    await page.goto("http://localhost:5173/");
+    await page.goto("/");
 
     const taskItem = page.getByTestId(`task-item-${createdTask.id}`);
 
@@ -101,7 +101,7 @@ test.describe("Task edit validation", () => {
       notes: originalNotes,
     });
 
-    await page.goto("http://localhost:5173/");
+    await page.goto("/");
 
     const taskItem = page.getByTestId(`task-item-${createdTask.id}`);
 

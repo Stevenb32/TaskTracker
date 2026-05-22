@@ -32,6 +32,28 @@ VALUES
     NOW()
 );
 
+-- create  task at specific time
+INSERT INTO public."Tasks"
+(
+    "Id",
+    "Title",
+    "Notes",
+    "Status",
+    "CreatedAt",
+    "CompletedAt",
+    "UpdatedAt"
+)
+VALUES
+(
+    gen_random_uuid(),
+    'Test task from SQL',
+    'Created directly in Postgres',
+    0,
+    '2026-07-19 10:30:22.494856+00',
+    NULL,
+    NOW()
+);
+
 -- select by id
 SELECT *
 FROM public."Tasks"

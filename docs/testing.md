@@ -38,43 +38,58 @@ dotnet test TaskTracker.slnx
 
 Project: `TaskTracker.E2E.Tests`
 
-The E2E test covers the main UI workflow: create, edit, complete, reopen, and delete a task.
+The Playwright E2E suite covers task lifecycle, validation, and persistence workflows.
 
 The Playwright config starts the API and UI before the tests run. The E2E database still needs to be running first.
 
-Start the E2E database from the repo root:
+### Start the E2E database from the repo root:
 
 ```bash
 docker compose -f docker-compose.e2e.yml up -d
 ```
 
-Apply the E2E database migrations if needed:
+### Apply the E2E database migrations if needed:
 
 ```powershell
 $env:ASPNETCORE_ENVIRONMENT="E2E"
 dotnet ef database update --project TaskTracker.Api --startup-project TaskTracker.Api
 ```
 
-Run the E2E tests:
+### Run the E2E tests:
 
 ```bash
 cd TaskTracker.E2E.Tests
 npx playwright test
 ```
 
-Run only the configured Chromium project:
-
+Or use the npm script:
 ```bash
-npx playwright test --project=chromium
+npm run test
 ```
 
-Open the Playwright HTML report after a test run:
+### Run the Playwright UI mode:
+
+```bash
+npx playwright test --ui
+```
+
+Or use the npm script:
+```bash
+npm run test-ui
+```
+
+### Open the Playwright HTML report after a test run:
 
 ```bash
 npx playwright show-report
 ```
 
-Stop the E2E database:
+Or use the npm script:
+```bash
+npm run report
+```
+
+### Stop the E2E database:
 
 ```bash
 docker compose -f docker-compose.e2e.yml down

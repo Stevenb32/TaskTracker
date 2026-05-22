@@ -16,7 +16,7 @@ test("created task persists after reload", async ({ page, request }) => {
     notes: originalNotes,
   });
 
-  await page.goto("http://localhost:5173/");
+  await page.goto("/");
 
   const taskItem = page.getByTestId(`task-item-${createdTask.id}`);
 
@@ -44,7 +44,7 @@ test("completed task stays completed after reload", async ({ page, request }) =>
 
   await completeTaskViaApi(request, createdTask.id);
 
-  await page.goto("http://localhost:5173/");
+  await page.goto("/");
 
   const taskItem = page.getByTestId(`task-item-${createdTask.id}`);
 
@@ -69,7 +69,7 @@ test("deleted task stays deleted after reload", async ({ page, request }) => {
     notes: originalNotes,
   });
 
-  await page.goto("http://localhost:5173/");
+  await page.goto("/");
 
   const taskItem = page.getByTestId(`task-item-${createdTask.id}`);
 

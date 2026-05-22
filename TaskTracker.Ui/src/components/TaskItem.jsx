@@ -1,11 +1,11 @@
-import { useState } from 'react';
+import { useState } from "react";
 
 const TITLE_MAX_LENGTH = 100;
 const NOTES_MAX_LENGTH = 500;
 
 function formatDate(value) {
   if (!value) {
-    return '';
+    return "";
   }
 
   return new Date(value).toLocaleString();
@@ -14,25 +14,23 @@ function formatDate(value) {
 function TaskItem({ task, onCompleteTask, onReopenTask, onUpdateTask, onDeleteTask }) {
   const [isEditing, setIsEditing] = useState(false);
   const [title, setTitle] = useState(task.title);
-  const [notes, setNotes] = useState(task.notes || '');
+  const [notes, setNotes] = useState(task.notes || "");
   const [showTitleRequired, setShowTitleRequired] = useState(false);
   const [titleTouched, setTitleTouched] = useState(false);
   const [notesTouched, setNotesTouched] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
-  const titleRequiredMessage = showTitleRequired && !title.trim() ? 'Title is required' : '';
-  const titleLimitMessage = titleTouched && title.length === TITLE_MAX_LENGTH
-      ? `Title can only be ${TITLE_MAX_LENGTH} characters` : '';
-  const notesLimitMessage = notesTouched && notes.length === NOTES_MAX_LENGTH
-      ? `Notes can only be ${NOTES_MAX_LENGTH} characters` : '';
+  const titleRequiredMessage = showTitleRequired && !title.trim() ? "Title is required" : "";
+  const titleLimitMessage = titleTouched && title.length === TITLE_MAX_LENGTH ? `Title can only be ${TITLE_MAX_LENGTH} characters` : "";
+  const notesLimitMessage = notesTouched && notes.length === NOTES_MAX_LENGTH ? `Notes can only be ${NOTES_MAX_LENGTH} characters` : "";
   const titleMessage = titleRequiredMessage || titleLimitMessage;
   const notesMessage = notesLimitMessage;
-  const titleClassName = `w-full border px-2 py-1 ${titleMessage ? 'border-red-700' : ''}`;
-  const notesClassName = `w-full border px-2 py-1 ${notesMessage ? 'border-red-700' : ''}`;
+  const titleClassName = `w-full border px-2 py-1 ${titleMessage ? "border-red-700" : ""}`;
+  const notesClassName = `w-full border px-2 py-1 ${notesMessage ? "border-red-700" : ""}`;
 
   function startEditing() {
     setTitle(task.title);
-    setNotes(task.notes || '');
+    setNotes(task.notes || "");
     setShowTitleRequired(false);
     setTitleTouched(false);
     setNotesTouched(false);
@@ -41,7 +39,7 @@ function TaskItem({ task, onCompleteTask, onReopenTask, onUpdateTask, onDeleteTa
 
   function cancelEditing() {
     setTitle(task.title);
-    setNotes(task.notes || '');
+    setNotes(task.notes || "");
     setShowTitleRequired(false);
     setTitleTouched(false);
     setNotesTouched(false);
@@ -133,7 +131,7 @@ function TaskItem({ task, onCompleteTask, onReopenTask, onUpdateTask, onDeleteTa
               disabled={isSaving}
               className="bg-blue-600 text-white px-3 py-1 border border-blue-700 hover:bg-blue-700 rounded"
             >
-              {isSaving ? 'Saving...' : 'Save'}
+              {isSaving ? "Saving..." : "Save"}
             </button>
 
             <button
@@ -150,7 +148,7 @@ function TaskItem({ task, onCompleteTask, onReopenTask, onUpdateTask, onDeleteTa
         <>
           <h3 className="font-semibold">{task.title}</h3>
 
-          <p className="mt-2">{task.notes || 'No notes'}</p>
+          <p className="mt-2">{task.notes || "No notes"}</p>
         </>
       )}
 
@@ -179,7 +177,7 @@ function TaskItem({ task, onCompleteTask, onReopenTask, onUpdateTask, onDeleteTa
 
       {!isEditing && (
         <div className="mt-3 flex gap-2">
-          {task.status === 'Active' && (
+          {task.status === "Active" && (
             <button
               type="button"
               onClick={() => onCompleteTask(task.id)}
@@ -189,7 +187,7 @@ function TaskItem({ task, onCompleteTask, onReopenTask, onUpdateTask, onDeleteTa
             </button>
           )}
 
-          {task.status === 'Completed' && (
+          {task.status === "Completed" && (
             <button
               type="button"
               onClick={() => onReopenTask(task.id)}

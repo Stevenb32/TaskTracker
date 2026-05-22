@@ -1,21 +1,21 @@
-import { useState } from 'react';
+import { useState } from "react";
 
 const TITLE_MAX_LENGTH = 100;
 const NOTES_MAX_LENGTH = 500;
 
 function TaskForm({ onCreateTask }) {
-  const [title, setTitle] = useState('');
-  const [notes, setNotes] = useState('');
+  const [title, setTitle] = useState("");
+  const [notes, setNotes] = useState("");
   const [showTitleRequired, setShowTitleRequired] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
-  const titleRequiredMessage = showTitleRequired && !title.trim() ? 'Title is required' : '';
-  const titleLimitMessage = title.length === TITLE_MAX_LENGTH ? `Title can only be ${TITLE_MAX_LENGTH} characters` : '';
-  const notesLimitMessage = notes.length === NOTES_MAX_LENGTH ? `Notes can only be ${NOTES_MAX_LENGTH} characters` : '';
+  const titleRequiredMessage = showTitleRequired && !title.trim() ? "Title is required" : "";
+  const titleLimitMessage = title.length === TITLE_MAX_LENGTH ? `Title can only be ${TITLE_MAX_LENGTH} characters` : "";
+  const notesLimitMessage = notes.length === NOTES_MAX_LENGTH ? `Notes can only be ${NOTES_MAX_LENGTH} characters` : "";
   const titleMessage = titleRequiredMessage || titleLimitMessage;
   const notesMessage = notesLimitMessage;
-  const titleClassName = `w-full border px-2 py-1 ${titleMessage ? 'border-red-700' : ''}`;
-  const notesClassName = `w-full border px-2 py-1 ${notesMessage ? 'border-red-700' : ''}`;
+  const titleClassName = `w-full border px-2 py-1 ${titleMessage ? "border-red-700" : ""}`;
+  const notesClassName = `w-full border px-2 py-1 ${notesMessage ? "border-red-700" : ""}`;
 
   async function handleSubmit(event) {
     event.preventDefault();
@@ -45,8 +45,8 @@ function TaskForm({ onCreateTask }) {
         notes: trimmedNotes || null,
       });
 
-      setTitle('');
-      setNotes('');
+      setTitle("");
+      setNotes("");
       setShowTitleRequired(false);
     } catch {
       // App shows the error message.
@@ -91,7 +91,7 @@ function TaskForm({ onCreateTask }) {
         disabled={isSaving}
         className="bg-blue-600 text-white px-3 py-1 border border-blue-700 hover:bg-blue-700 rounded"
       >
-        {isSaving ? 'Saving...' : 'Create Task'}
+        {isSaving ? "Saving..." : "Create Task"}
       </button>
     </form>
   );

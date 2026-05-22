@@ -1,5 +1,7 @@
 import { expect, APIRequestContext } from "@playwright/test";
 
+const apiBaseUrl = process.env.API_BASE_URL ?? "http://localhost:5127";
+
 export type CreateTaskRequest = {
   title: string;
   notes?: string;
@@ -16,13 +18,13 @@ export type TaskResponse = {
 };
 
 export async function resetDbViaApi(request: APIRequestContext) {
-  const response = await request.post("http://localhost:5127/testing/reset-db");
+  const response = await request.post(`${apiBaseUrl}/testing/reset-db`);
 
   expect(response.status()).toBe(204);
 }
 
 export async function createTaskViaApi(request: APIRequestContext, task: CreateTaskRequest): Promise<TaskResponse> {
-  const response = await request.post("http://localhost:5127/tasks", {
+  const response = await request.post(`${apiBaseUrl}/tasks`, {
     data: task,
   });
 
@@ -32,7 +34,7 @@ export async function createTaskViaApi(request: APIRequestContext, task: CreateT
 }
 
 export async function completeTaskViaApi(request: APIRequestContext, taskId: string): Promise<TaskResponse> {
-  const response = await request.post(`http://localhost:5127/tasks/${taskId}/complete`);
+  const response = await request.post(`${apiBaseUrl}/tasks/${taskId}/complete`);
 
   expect(response.status()).toBe(200);
 
@@ -40,7 +42,7 @@ export async function completeTaskViaApi(request: APIRequestContext, taskId: str
 }
 
 export async function reopenTaskViaApi(request: APIRequestContext, taskId: string): Promise<TaskResponse> {
-  const response = await request.post(`http://localhost:5127/tasks/${taskId}/reopen`);
+  const response = await request.post(`${apiBaseUrl}/tasks/${taskId}/reopen`);
 
   expect(response.status()).toBe(200);
 
@@ -48,7 +50,7 @@ export async function reopenTaskViaApi(request: APIRequestContext, taskId: strin
 }
 
 export async function deleteTaskViaApi(request: APIRequestContext, taskId: string): Promise<void> {
-  const response = await request.delete(`http://localhost:5127/tasks/${taskId}`);
+  const response = await request.delete(`${apiBaseUrl}/tasks/${taskId}`);
 
   expect(response.status()).toBe(204);
 }

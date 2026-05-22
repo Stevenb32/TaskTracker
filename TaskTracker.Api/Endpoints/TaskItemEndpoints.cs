@@ -71,6 +71,7 @@ public static class TaskItemEndpoints
     {
         var taskItems = await db.Tasks
             .AsNoTracking()
+            .OrderByDescending(task => task.CreatedAt)
             .ToListAsync();
 
             var response = taskItems
