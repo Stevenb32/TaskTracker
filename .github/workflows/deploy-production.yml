@@ -3,16 +3,44 @@ name: Deploy Production
 on:
   workflow_dispatch:
 
+concurrency:
+  group: tasktracker-production
+  cancel-in-progress: false
+
 jobs:
   deploy:
     name: Deploy to Raspberry Pi
     runs-on: [self-hosted, Linux, ARM64, tasktracker]
 
+    defaults:
+      run:
+        working-directory: /home/broslam/GitRepos/TaskTracker
+
     steps:
-      - name: Verify runner
+      - name: Verify production directory
         run: |
-          echo "Runner connected successfully"
-          whoami
-          hostname
-          pwd
-          docker compose version
+          test -d .git
+          test -f docker-compose.prod.yml
+
+      - name: Update production code
+        run: |
+          git fetch origin main
+          git checkout main
+          git pull --ff-only origin main
+
+      - name: Build and start production containers
+        run: |
+          docker compose -f docker-compose.prod.yml up -d --build
+
+      - name: Verify production health
+        run: |
+          curl --fail \
+            --retry 12 \
+            --retry-delay 5 \
+            --retry-all-errors \
+            http://127.0.0.1:8082/health
+
+      - name: Show production containers
+        if: always()
+        run: |
+          docker compose -f docker-compose.prod.yml ps
