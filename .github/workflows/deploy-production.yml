@@ -1,0 +1,18 @@
+name: Deploy Production
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Deploy to Raspberry Pi
+    runs-on: [self-hosted, Linux, ARM64, tasktracker]
+
+    steps:
+      - name: Verify runner
+        run: |
+          echo "Runner connected successfully"
+          whoami
+          hostname
+          pwd
+          docker compose version
