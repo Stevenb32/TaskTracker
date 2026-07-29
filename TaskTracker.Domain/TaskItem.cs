@@ -1,10 +1,19 @@
 ﻿namespace TaskTracker.Domain;
 
 public enum TaskStatus
-    {
-        Active,
-        Completed
-    }
+{
+    Active,
+    Completed
+}
+
+public enum TaskPriority
+{
+    Unknown = 0,
+    Low = 1,
+    Medium = 2,
+    High = 3,
+    Critical = 4
+}
 
 public class TaskItem
 {
@@ -12,6 +21,7 @@ public class TaskItem
     public string Title { get; private set; } = string.Empty; // required cannot be null or whitespace
     public string? Notes { get; private set; } // optional user provided notes
     public TaskStatus Status { get; private set; } // set internally
+    public TaskPriority Priority { get; private set; }
     public DateTimeOffset CreatedAt { get; private set; }
     public DateTimeOffset? CompletedAt { get; private set; } // null until the task is completed | if reopened set to null
     public DateTimeOffset? UpdatedAt { get; private set; } // null until first update
@@ -21,32 +31,38 @@ public class TaskItem
     }
 
     // private constructor forces callers through Create so invariants stay enforced
-    private TaskItem(Guid id, string title, string? notes, DateTimeOffset createdAt)
-    {   
+    private TaskItem(Guid id, string title, string? notes, TaskPriority priority, DateTimeOffset createdAt)
+    {
         Id = id;
         Title = title;
         Notes = notes;
         Status = TaskStatus.Active;
+        Priority = priority;
         CreatedAt = createdAt;
-        CompletedAt = null;        
+        CompletedAt = null;
     }
 
     // factory method that validates and normalizes input before creating a task
-    public static TaskItem Create(string title, string? notes, DateTimeOffset now)
+    public static TaskItem Create(string title, string? notes, TaskPriority priority, DateTimeOffset now)
     {
         ValidateNow(now);
+        ValidatePriority(priority);
+
+        var normalizedTitle = ValidateAndNormalizeTitle(title);
+        var normalizedNotes = ValidateAndNormalizeNotes(notes);
 
         return new TaskItem(
             Guid.NewGuid(),
-            ValidateAndNormalizeTitle(title),
-            ValidateAndNormalizeNotes(notes),
+            normalizedTitle,
+            normalizedNotes,
+            priority,
             now);
     }
 
     public void Complete(DateTimeOffset now)
     {
         ValidateNow(now);
-        
+
         // idempotent: completing an already completed task leaves the original completion state unchanged
         if (Status == TaskStatus.Completed)
         {
@@ -72,8 +88,8 @@ public class TaskItem
         // return task to the active state, clear completed time, and update updated time
         Status = TaskStatus.Active;
         CompletedAt = null;
-        UpdatedAt = now;        
-    } 
+        UpdatedAt = now;
+    }
 
     public void UpdateDetails(string title, string? notes, DateTimeOffset now)
     {
@@ -93,6 +109,20 @@ public class TaskItem
         UpdatedAt = now;
     }
 
+    public void ChangePriority(TaskPriority priority, DateTimeOffset now)
+    {
+        ValidateNow(now);
+        ValidatePriority(priority);
+
+        if (Priority == priority)
+        {
+            return;
+        }
+
+        Priority = priority;
+        UpdatedAt = now;
+    }
+
 
 
     // helper methods
@@ -103,7 +133,15 @@ public class TaskItem
         {
             throw new ArgumentException("Now must be a valid time.", nameof(now));
         }
-    }   
+    }
+
+    private static void ValidatePriority(TaskPriority priority)
+    {
+        if (priority == TaskPriority.Unknown || !Enum.IsDefined(priority))
+        {
+            throw new ArgumentException("Priority must be Low, Medium, High, or Critical.", nameof(priority));
+        }
+    }
 
     private static string ValidateAndNormalizeTitle(string title)
     {
@@ -120,7 +158,7 @@ public class TaskItem
         if (trimmedTitle.Length > 100)
         {
             throw new ArgumentException("Title cannot exceed 100 characters.", nameof(title));
-        }   
+        }
 
         return trimmedTitle;
     }

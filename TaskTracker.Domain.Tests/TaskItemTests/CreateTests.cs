@@ -5,17 +5,53 @@ public class CreateTests : TaskItemTestBase
     [Fact] // create requires a real timestamp and rejects default value
     public void Create_WhenTimeIsDefault_ThrowsArgumentException()
     {
-        // Given
-        var validTitle = "Valid Title";
-        var validNotes = "Valid Notes";
-        var defaultTime = default(DateTimeOffset);
-    
         // When
-        Action act = () => TaskItem.Create(validTitle, validNotes, defaultTime);
-    
+        Action act = () => TaskItem.Create(ValidTitle, ValidNotes, ValidPriority, DefaultTime);
+
         // Then
-        act.Should().Throw<ArgumentException>().WithParameterName("now");
+        act.Should().Throw<ArgumentException>().WithParameterName("now").WithMessage("*Now must be a valid time.*");
     }
+
+    [Fact] // unkown priority throws exception
+    public void Create_WithUnknownPriority_ThrowsArgumentException()
+    {
+        // Given
+        var unknownPriority = TaskPriority.Unknown;
+
+        // When
+        Action act = () => TaskItem.Create(ValidTitle, ValidNotes, unknownPriority, ValidCreateTime);
+
+        // Then
+        act.Should().Throw<ArgumentException>().WithParameterName("priority").WithMessage("*Priority must be Low, Medium, High, or Critical.*");
+    }
+
+    [Fact] // undefined prioirty throws exception
+    public void Create_WithUndefinedPriority_ThrowsArgumentException()
+    {
+        // Given
+        var undefinedPriority = (TaskPriority)999;
+
+        // When
+        Action act = () => TaskItem.Create(ValidTitle, ValidNotes, undefinedPriority, ValidCreateTime);
+
+        // Then
+        act.Should().Throw<ArgumentException>().WithParameterName("priority").WithMessage("*Priority must be Low, Medium, High, or Critical.*");
+    }
+
+    [Theory] // valid priority creates task and sets prioirty
+    [InlineData(TaskPriority.Low)]
+    [InlineData(TaskPriority.Medium)]
+    [InlineData(TaskPriority.High)]
+    [InlineData(TaskPriority.Critical)]
+    public void Create_WithValidPriority_SetsPriority(TaskPriority priority)
+    {
+        // When
+        var task = TaskItem.Create(ValidTitle, ValidNotes, priority, ValidCreateTime);
+
+        // Then
+        task.Priority.Should().Be(priority);
+    }
+
 
     [Theory] // title required and cannot be null empty or whitespace
     [InlineData(null)] // null
@@ -24,15 +60,11 @@ public class CreateTests : TaskItemTestBase
     [InlineData("     ")] // moar whitespaces
     public void Create_WhenTitleIsNullEmptyOrWhitespace_ThrowsArgumentException(string? title)
     {
-        // Given           
-        var validNotes = "From the store";  
-        var validCreateTime = new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero);
-        
         // When
-        Action act = () => TaskItem.Create(title!, validNotes, validCreateTime);
-    
+        Action act = () => TaskItem.Create(title!, ValidNotes, ValidPriority, ValidCreateTime);
+
         // Then
-        act.Should().Throw<ArgumentException>().WithParameterName("title");
+        act.Should().Throw<ArgumentException>().WithParameterName("title").WithMessage("*Title cannot be null, empty, or whitespace.*");
     }
 
     [Fact] // guards against validating raw title length instead of trimmed length
@@ -41,14 +73,12 @@ public class CreateTests : TaskItemTestBase
         // Given
         // surrounding spaces should not make an over-limit title pass validation
         var invalidTitleLengthAfterTrim = "   " + new string('a', 101) + "   ";
-        var validNotes = "notes";
-        var validCreateTime = new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero);
 
         // When
-        Action act = () => TaskItem.Create(invalidTitleLengthAfterTrim, validNotes, validCreateTime);
+        Action act = () => TaskItem.Create(invalidTitleLengthAfterTrim, ValidNotes, ValidPriority, ValidCreateTime);
 
         // Then
-        act.Should().Throw<ArgumentException>().WithParameterName("title");
+        act.Should().Throw<ArgumentException>().WithParameterName("title").WithMessage("*Title cannot exceed 100 characters.*");
     }
 
     [Theory] // title must not exceed 100 characters after normalization
@@ -59,15 +89,13 @@ public class CreateTests : TaskItemTestBase
     {
         // Given
         var titleWithInvalidLength = new string('a', titleLength);
-        var validNotes = "From the store";
-        var validCreateTime = new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero);
 
         // When
-        Action act = () => TaskItem.Create(titleWithInvalidLength, validNotes, validCreateTime);
+        Action act = () => TaskItem.Create(titleWithInvalidLength, ValidNotes, ValidPriority, ValidCreateTime);
 
         // Then
-        act.Should().Throw<ArgumentException>().WithParameterName("title");
-    }    
+        act.Should().Throw<ArgumentException>().WithParameterName("title").WithMessage("*Title cannot exceed 100 characters.*");
+    }
 
     [Theory] // title lengths within the allowed limit should be accepted
     [InlineData(1)]
@@ -77,11 +105,9 @@ public class CreateTests : TaskItemTestBase
     {
         // Given
         var validTitle = new string('a', titleLength);
-        var validNotes = "From the store";
-        var validCreateTime = new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero);
 
         // When
-        var task = TaskItem.Create(validTitle, validNotes, validCreateTime);
+        var task = TaskItem.Create(validTitle, ValidNotes, ValidPriority, ValidCreateTime);
 
         // Then
         task.Title.Should().Be(validTitle);
@@ -92,11 +118,9 @@ public class CreateTests : TaskItemTestBase
     {
         // Given
         var validTitleWithSpaces = "   " + new string('a', 100) + "   ";
-        var validNotes = "notes";
-        var validCreateTime = new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero);
 
         // When
-        var task = TaskItem.Create(validTitleWithSpaces, validNotes, validCreateTime);
+        var task = TaskItem.Create(validTitleWithSpaces, ValidNotes, ValidPriority, ValidCreateTime);
 
         // Then
         task.Title.Should().Be(new string('a', 100));
@@ -106,15 +130,13 @@ public class CreateTests : TaskItemTestBase
     public void Create_WhenTrimmedNotesLengthExceedsLimit_ThrowsArgumentException()
     {
         // Given
-        var validTitle = "Buy milk";
         var invalidNotesLengthAfterTrim = "   " + new string('a', 501) + "   ";
-        var validCreateTime = new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero);
 
         // When
-        Action act = () => TaskItem.Create(validTitle, invalidNotesLengthAfterTrim, validCreateTime);
+        Action act = () => TaskItem.Create(ValidTitle, invalidNotesLengthAfterTrim, ValidPriority, ValidCreateTime);
 
         // Then
-        act.Should().Throw<ArgumentException>().WithParameterName("notes");
+        act.Should().Throw<ArgumentException>().WithParameterName("notes").WithMessage("*Notes cannot exceed 500 characters.*");
     }
 
     [Theory] // notes must not exceed 500 characters after normalization
@@ -124,15 +146,13 @@ public class CreateTests : TaskItemTestBase
     public void Create_WhenNotesLengthExceedsLimit_ThrowsArgumentException(int notesLength)
     {
         // Given
-        var validTitle = "Buy milk";
-        var notesWithInvalidLength = new string('a', notesLength);        
-        var validCreateTime = new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero);
+        var notesWithInvalidLength = new string('a', notesLength);
 
         // When
-        Action act = () => TaskItem.Create(validTitle, notesWithInvalidLength, validCreateTime);
+        Action act = () => TaskItem.Create(ValidTitle, notesWithInvalidLength, ValidPriority, ValidCreateTime);
 
         // Then
-        act.Should().Throw<ArgumentException>().WithParameterName("notes");
+        act.Should().Throw<ArgumentException>().WithParameterName("notes").WithMessage("*Notes cannot exceed 500 characters.*");
     }
 
     [Theory] // notes are normalized to null instead of being stored as empty text
@@ -142,13 +162,9 @@ public class CreateTests : TaskItemTestBase
     [InlineData("     ")] // moar whitespaces
     public void Create_WhenNotesIsNullEmptyOrWhitespace_SetsNotesToNull(string? notes)
     {
-        // Given        
-        var validTitle = "Buy milk";        
-        var validCreateTime = new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero);
-        
         // When
-        var task = TaskItem.Create(validTitle, notes, validCreateTime);
-    
+        var task = TaskItem.Create(ValidTitle, notes, ValidPriority, ValidCreateTime);
+
         // Then
         task.Notes.Should().BeNull();
     }
@@ -157,12 +173,10 @@ public class CreateTests : TaskItemTestBase
     public void Create_WhenNotesHasSpacesButTrimmedLengthIs500_SetsTrimmedNotes()
     {
         // Given
-        var validTitle = "Buy milk";
         var validNotesWithSpaces = "   " + new string('a', 500) + "   ";
-        var validCreateTime = new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero);
 
         // When
-        var task = TaskItem.Create(validTitle, validNotesWithSpaces, validCreateTime);
+        var task = TaskItem.Create(ValidTitle, validNotesWithSpaces, ValidPriority, ValidCreateTime);
 
         // Then
         task.Notes.Should().Be(new string('a', 500));
@@ -175,12 +189,10 @@ public class CreateTests : TaskItemTestBase
     public void Create_WhenNotesLengthIsWithinLimit_SetsNotes(int notesLength)
     {
         // Given
-        var validTitle = "Buy milk";
-        var notesWithValidLength = new string('a', notesLength);        
-        var validCreateTime = new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero);
+        var notesWithValidLength = new string('a', notesLength);
 
         // When
-        var task = TaskItem.Create(validTitle, notesWithValidLength, validCreateTime);
+        var task = TaskItem.Create(ValidTitle, notesWithValidLength, ValidPriority, ValidCreateTime);
 
         // Then
         task.Notes.Should().Be(notesWithValidLength);
@@ -189,21 +201,17 @@ public class CreateTests : TaskItemTestBase
     [Fact] // valid inputs should produce a fully initialized active task
     public void Create_WhenInputsAreValid_SetsAllProperties()
     {
-        // Given        
-        var validTitle = "Valid Title";
-        var validNotes = "Valid Notes";
-        var validCreateTime = new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero);
-        
         // When
-        var task = TaskItem.Create(validTitle, validNotes, validCreateTime);
-    
+        var task = TaskItem.Create(ValidTitle, ValidNotes, ValidPriority, ValidCreateTime);
+
         // Then       
 
-        task.Id.Should().NotBeEmpty();        
-        task.Title.Should().Be(validTitle);
-        task.Notes.Should().Be(validNotes);
+        task.Id.Should().NotBeEmpty();
+        task.Title.Should().Be(ValidTitle);
+        task.Notes.Should().Be(ValidNotes);
         task.Status.Should().Be(TaskStatus.Active);
-        task.CreatedAt.Should().Be(validCreateTime);
+        task.Priority.Should().Be(ValidPriority);
+        task.CreatedAt.Should().Be(ValidCreateTime);
         task.CompletedAt.Should().BeNull();
         task.UpdatedAt.Should().BeNull();
     }
@@ -211,15 +219,10 @@ public class CreateTests : TaskItemTestBase
     [Fact] // each created task should receive a unique identifier
     public void Create_WhenCalled_AssignsDifferentIds()
     {
-        // Given        
-        var validTitle = "Buy milk";
-        var validNotes = "From the store";
-        var validCreateTime = new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero);
-        
         // When
-        var task1 = TaskItem.Create(validTitle, validNotes, validCreateTime);
-        var task2 = TaskItem.Create(validTitle, validNotes, validCreateTime);
-    
+        var task1 = TaskItem.Create(ValidTitle, ValidNotes, ValidPriority, ValidCreateTime);
+        var task2 = TaskItem.Create(ValidTitle, ValidNotes, ValidPriority, ValidCreateTime);
+
         // Then
         task1.Id.Should().NotBeEmpty();
         task2.Id.Should().NotBeEmpty();
