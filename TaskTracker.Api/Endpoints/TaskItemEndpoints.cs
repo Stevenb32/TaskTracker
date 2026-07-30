@@ -57,6 +57,7 @@ public static class TaskItemEndpoints
         var taskItem = TaskItem.Create(
             request.Title,
             request.Notes,
+            TaskPriority.Medium,
             DateTimeOffset.UtcNow);
 
         db.Tasks.Add(taskItem);        

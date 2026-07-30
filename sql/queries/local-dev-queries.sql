@@ -54,6 +54,31 @@ VALUES
     NOW()
 );
 
+-- create completed task
+INSERT INTO public."Tasks"
+(
+    "Id",
+    "Title",
+    "Notes",
+    "Status",
+    "CreatedAt",
+    "CompletedAt",
+    "UpdatedAt"
+)
+VALUES
+(
+    gen_random_uuid(),
+    'Test task from SQL',
+    'Completed directly in Postgres',
+    1,
+    NOW(),
+    NOW(),
+    NOW()
+);
+
+
+
+
 -- select by id
 SELECT *
 FROM public."Tasks"
