@@ -1,19 +1,21 @@
+using TaskTracker.Domain.Exceptions;
+
 namespace TaskTracker.Domain.Tests.TaskItemTests;
 
 public class CreateTests : TaskItemTestBase
 {
     [Fact] // create requires a real timestamp and rejects default value
-    public void Create_WhenTimeIsDefault_ThrowsArgumentException()
+    public void Create_WhenTimeIsDefault_ThrowsDomainValidationException()
     {
         // When
         Action act = () => TaskItem.Create(ValidTitle, ValidNotes, ValidPriority, DefaultTime);
 
         // Then
-        act.Should().Throw<ArgumentException>().WithParameterName("now").WithMessage("*Now must be a valid time.*");
+        act.Should().Throw<DomainValidationException>().WithParameterName("now").WithMessage("*Now must be a valid time.*");
     }
 
     [Fact] // unkown priority throws exception
-    public void Create_WithUnknownPriority_ThrowsArgumentException()
+    public void Create_WithUnknownPriority_ThrowsDomainValidationException()
     {
         // Given
         var unknownPriority = TaskPriority.Unknown;
@@ -22,11 +24,11 @@ public class CreateTests : TaskItemTestBase
         Action act = () => TaskItem.Create(ValidTitle, ValidNotes, unknownPriority, ValidCreateTime);
 
         // Then
-        act.Should().Throw<ArgumentException>().WithParameterName("priority").WithMessage("*Priority must be Low, Medium, High, or Critical.*");
+        act.Should().Throw<DomainValidationException>().WithParameterName("priority").WithMessage("*Priority must be Low, Medium, High, or Critical.*");
     }
 
     [Fact] // undefined prioirty throws exception
-    public void Create_WithUndefinedPriority_ThrowsArgumentException()
+    public void Create_WithUndefinedPriority_ThrowsDomainValidationException()
     {
         // Given
         var undefinedPriority = (TaskPriority)999;
@@ -35,7 +37,7 @@ public class CreateTests : TaskItemTestBase
         Action act = () => TaskItem.Create(ValidTitle, ValidNotes, undefinedPriority, ValidCreateTime);
 
         // Then
-        act.Should().Throw<ArgumentException>().WithParameterName("priority").WithMessage("*Priority must be Low, Medium, High, or Critical.*");
+        act.Should().Throw<DomainValidationException>().WithParameterName("priority").WithMessage("*Priority must be Low, Medium, High, or Critical.*");
     }
 
     [Theory] // valid priority creates task and sets prioirty
@@ -58,17 +60,17 @@ public class CreateTests : TaskItemTestBase
     [InlineData("")] // empty
     [InlineData(" ")] // whitespace
     [InlineData("     ")] // moar whitespaces
-    public void Create_WhenTitleIsNullEmptyOrWhitespace_ThrowsArgumentException(string? title)
+    public void Create_WhenTitleIsNullEmptyOrWhitespace_ThrowsDomainValidationException(string? title)
     {
         // When
         Action act = () => TaskItem.Create(title!, ValidNotes, ValidPriority, ValidCreateTime);
 
         // Then
-        act.Should().Throw<ArgumentException>().WithParameterName("title").WithMessage("*Title cannot be null, empty, or whitespace.*");
+        act.Should().Throw<DomainValidationException>().WithParameterName("title").WithMessage("*Title cannot be null, empty, or whitespace.*");
     }
 
     [Fact] // guards against validating raw title length instead of trimmed length
-    public void Create_WhenTrimmedTitleLengthExceedsLimit_ThrowsArgumentException()
+    public void Create_WhenTrimmedTitleLengthExceedsLimit_ThrowsDomainValidationException()
     {
         // Given
         // surrounding spaces should not make an over-limit title pass validation
@@ -78,14 +80,14 @@ public class CreateTests : TaskItemTestBase
         Action act = () => TaskItem.Create(invalidTitleLengthAfterTrim, ValidNotes, ValidPriority, ValidCreateTime);
 
         // Then
-        act.Should().Throw<ArgumentException>().WithParameterName("title").WithMessage("*Title cannot exceed 100 characters.*");
+        act.Should().Throw<DomainValidationException>().WithParameterName("title").WithMessage("*Title cannot exceed 100 characters.*");
     }
 
     [Theory] // title must not exceed 100 characters after normalization
     [InlineData(101)]
     [InlineData(150)]
     [InlineData(300)]
-    public void Create_WhenTitleLengthExceedsLimit_ThrowsArgumentException(int titleLength)
+    public void Create_WhenTitleLengthExceedsLimit_ThrowsDomainValidationException(int titleLength)
     {
         // Given
         var titleWithInvalidLength = new string('a', titleLength);
@@ -94,7 +96,7 @@ public class CreateTests : TaskItemTestBase
         Action act = () => TaskItem.Create(titleWithInvalidLength, ValidNotes, ValidPriority, ValidCreateTime);
 
         // Then
-        act.Should().Throw<ArgumentException>().WithParameterName("title").WithMessage("*Title cannot exceed 100 characters.*");
+        act.Should().Throw<DomainValidationException>().WithParameterName("title").WithMessage("*Title cannot exceed 100 characters.*");
     }
 
     [Theory] // title lengths within the allowed limit should be accepted
@@ -127,7 +129,7 @@ public class CreateTests : TaskItemTestBase
     }
 
     [Fact] // guards against validating raw notes length instead of trimmed length
-    public void Create_WhenTrimmedNotesLengthExceedsLimit_ThrowsArgumentException()
+    public void Create_WhenTrimmedNotesLengthExceedsLimit_ThrowsDomainValidationException()
     {
         // Given
         var invalidNotesLengthAfterTrim = "   " + new string('a', 501) + "   ";
@@ -136,14 +138,14 @@ public class CreateTests : TaskItemTestBase
         Action act = () => TaskItem.Create(ValidTitle, invalidNotesLengthAfterTrim, ValidPriority, ValidCreateTime);
 
         // Then
-        act.Should().Throw<ArgumentException>().WithParameterName("notes").WithMessage("*Notes cannot exceed 500 characters.*");
+        act.Should().Throw<DomainValidationException>().WithParameterName("notes").WithMessage("*Notes cannot exceed 500 characters.*");
     }
 
     [Theory] // notes must not exceed 500 characters after normalization
     [InlineData(501)]
     [InlineData(750)]
     [InlineData(1000)]
-    public void Create_WhenNotesLengthExceedsLimit_ThrowsArgumentException(int notesLength)
+    public void Create_WhenNotesLengthExceedsLimit_ThrowsDomainValidationException(int notesLength)
     {
         // Given
         var notesWithInvalidLength = new string('a', notesLength);
@@ -152,7 +154,7 @@ public class CreateTests : TaskItemTestBase
         Action act = () => TaskItem.Create(ValidTitle, notesWithInvalidLength, ValidPriority, ValidCreateTime);
 
         // Then
-        act.Should().Throw<ArgumentException>().WithParameterName("notes").WithMessage("*Notes cannot exceed 500 characters.*");
+        act.Should().Throw<DomainValidationException>().WithParameterName("notes").WithMessage("*Notes cannot exceed 500 characters.*");
     }
 
     [Theory] // notes are normalized to null instead of being stored as empty text

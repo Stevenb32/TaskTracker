@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using TaskTracker.Domain;
 
 namespace TaskTracker.Api.Dtos;
 public class TaskItemCreateRequest
@@ -9,4 +10,6 @@ public class TaskItemCreateRequest
 
     [StringLength(500)]
     public string? Notes { get; set; }
+
+    public TaskPriority Priority { get; set; } = TaskPriority.Medium;
 }

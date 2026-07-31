@@ -1,3 +1,5 @@
+using TaskTracker.Domain.Exceptions;
+
 namespace TaskTracker.Domain.Tests.TaskItemTests;
 
 public class UpdatePriorityTests : TaskItemTestBase
@@ -45,7 +47,7 @@ public class UpdatePriorityTests : TaskItemTestBase
         Action act = () => task.ChangePriority(invalidPriority, ValidUpdateTime);
 
         // Then
-        act.Should().Throw<ArgumentException>().WithParameterName("priority").WithMessage("*Priority must be Low, Medium, High, or Critical.*");
+        act.Should().Throw<DomainValidationException>().WithParameterName("priority").WithMessage("*Priority must be Low, Medium, High, or Critical.*");
 
         task.Priority.Should().Be(TaskPriority.Medium);
         task.UpdatedAt.Should().BeNull();
@@ -61,7 +63,7 @@ public class UpdatePriorityTests : TaskItemTestBase
         Action act = () => task.ChangePriority(TaskPriority.Critical, DefaultTime);
 
         // Then
-        act.Should().Throw<ArgumentException>().WithParameterName("now").WithMessage("*Now must be a valid time.*");
+        act.Should().Throw<DomainValidationException>().WithParameterName("now").WithMessage("*Now must be a valid time.*");
 
         task.Priority.Should().Be(TaskPriority.Medium);
         task.UpdatedAt.Should().BeNull();

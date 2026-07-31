@@ -1,4 +1,6 @@
-﻿namespace TaskTracker.Domain;
+﻿using TaskTracker.Domain.Exceptions;
+
+namespace TaskTracker.Domain;
 
 public enum TaskStatus
 {
@@ -131,15 +133,15 @@ public class TaskItem
         // reject default timestamps so recorded with a meaningful value
         if (now == default)
         {
-            throw new ArgumentException("Now must be a valid time.", nameof(now));
+            throw new DomainValidationException("Now must be a valid time.", nameof(now));
         }
     }
 
     private static void ValidatePriority(TaskPriority priority)
     {
-        if (priority == TaskPriority.Unknown || !Enum.IsDefined(priority))
+        if (!Enum.IsDefined(priority) || priority == TaskPriority.Unknown)
         {
-            throw new ArgumentException("Priority must be Low, Medium, High, or Critical.", nameof(priority));
+            throw new DomainValidationException("Priority must be Low, Medium, High, or Critical.", nameof(priority));
         }
     }
 
@@ -148,7 +150,7 @@ public class TaskItem
         // title is required cannot be null empty or whitespace
         if (string.IsNullOrWhiteSpace(title))
         {
-            throw new ArgumentException("Title cannot be null, empty, or whitespace.", nameof(title));
+            throw new DomainValidationException("Title cannot be null, empty, or whitespace.", nameof(title));
         }
 
         // normalize before validation so surrounding spaces do not bypass length rules
@@ -157,7 +159,7 @@ public class TaskItem
         // title length is enforced after trimming
         if (trimmedTitle.Length > 100)
         {
-            throw new ArgumentException("Title cannot exceed 100 characters.", nameof(title));
+            throw new DomainValidationException("Title cannot exceed 100 characters.", nameof(title));
         }
 
         return trimmedTitle;
@@ -171,7 +173,7 @@ public class TaskItem
         // notes are optional but when provided must fit within max length
         if (trimmedNotes is not null && trimmedNotes.Length > 500)
         {
-            throw new ArgumentException("Notes cannot exceed 500 characters.", nameof(notes));
+            throw new DomainValidationException("Notes cannot exceed 500 characters.", nameof(notes));
         }
 
         return string.IsNullOrEmpty(trimmedNotes) ? null : trimmedNotes;

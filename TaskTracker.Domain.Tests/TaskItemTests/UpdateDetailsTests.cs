@@ -1,9 +1,11 @@
+using TaskTracker.Domain.Exceptions;
+
 namespace TaskTracker.Domain.Tests.TaskItemTests;
 
 public class UpdateDetailsTests : TaskItemTestBase
 {
     [Fact] // update requires a real timestamp and rejects default value
-    public void UpdateDetails_WhenTimeIsDefault_ThrowsArgumentException()
+    public void UpdateDetails_WhenTimeIsDefault_ThrowsDomainValidationException()
     {
         // Given
         var task = CreateValidTask();
@@ -12,7 +14,7 @@ public class UpdateDetailsTests : TaskItemTestBase
         Action act = () => task.UpdateDetails(UpdatedValidTitle, UpdatedValidNotes, DefaultTime);
 
         // Then
-        act.Should().Throw<ArgumentException>().WithParameterName("now").WithMessage("*Now must be a valid time.*");
+        act.Should().Throw<DomainValidationException>().WithParameterName("now").WithMessage("*Now must be a valid time.*");
     }
 
     [Theory] // title required and cannot be null empty or whitespace
@@ -20,7 +22,7 @@ public class UpdateDetailsTests : TaskItemTestBase
     [InlineData("")] // empty
     [InlineData(" ")] // whitespace
     [InlineData("     ")] // moar whitespaces  
-    public void UpdateDetails_WhenTitleIsNullEmptyOrWhitespace_ThrowsArgumentException(string? title)
+    public void UpdateDetails_WhenTitleIsNullEmptyOrWhitespace_ThrowsDomainValidationException(string? title)
     {
         // Given           
         var task = CreateValidTask();
@@ -29,11 +31,11 @@ public class UpdateDetailsTests : TaskItemTestBase
         Action act = () => task.UpdateDetails(title!, ValidNotes, ValidUpdateTime);
 
         // Then
-        act.Should().Throw<ArgumentException>().WithParameterName("title").WithMessage("*Title cannot be null, empty, or whitespace.*");
+        act.Should().Throw<DomainValidationException>().WithParameterName("title").WithMessage("*Title cannot be null, empty, or whitespace.*");
     }
 
     [Fact] // guards against validating raw title length instead of trimmed length
-    public void UpdateDetails_WhenTrimmedTitleLengthExceedsLimit_ThrowsArgumentException()
+    public void UpdateDetails_WhenTrimmedTitleLengthExceedsLimit_ThrowsDomainValidationException()
     {
         // Given
         var task = CreateValidTask();
@@ -44,14 +46,14 @@ public class UpdateDetailsTests : TaskItemTestBase
         Action act = () => task.UpdateDetails(invalidTitleLengthAfterTrim, ValidNotes, ValidUpdateTime);
 
         // Then
-        act.Should().Throw<ArgumentException>().WithParameterName("title").WithMessage("*Title cannot exceed 100 characters.*");
+        act.Should().Throw<DomainValidationException>().WithParameterName("title").WithMessage("*Title cannot exceed 100 characters.*");
     }
 
     [Theory] // title must not exceed 100 characters after normalization
     [InlineData(101)]
     [InlineData(150)]
     [InlineData(300)]
-    public void UpdateDetails_WhenTitleLengthExceedsLimit_ThrowsArgumentException(int titleLength)
+    public void UpdateDetails_WhenTitleLengthExceedsLimit_ThrowsDomainValidationException(int titleLength)
     {
         // Given
 
@@ -63,11 +65,11 @@ public class UpdateDetailsTests : TaskItemTestBase
         Action act = () => task.UpdateDetails(titleWithInvalidLength, ValidNotes, ValidUpdateTime);
 
         // Then
-        act.Should().Throw<ArgumentException>().WithParameterName("title").WithMessage("*Title cannot exceed 100 characters.*");
+        act.Should().Throw<DomainValidationException>().WithParameterName("title").WithMessage("*Title cannot exceed 100 characters.*");
     }
 
     [Fact] // guards against validating raw notes length instead of trimmed length
-    public void UpdateDetails_WhenTrimmedNotesLengthExceedsLimit_ThrowsArgumentException()
+    public void UpdateDetails_WhenTrimmedNotesLengthExceedsLimit_ThrowsDomainValidationException()
     {
         // Given
         var task = CreateValidTask();
@@ -78,14 +80,14 @@ public class UpdateDetailsTests : TaskItemTestBase
         Action act = () => task.UpdateDetails(UpdatedValidTitle, invalidNotesLengthAfterTrim, ValidUpdateTime);
 
         // Then
-        act.Should().Throw<ArgumentException>().WithParameterName("notes").WithMessage("*Notes cannot exceed 500 characters.*");
+        act.Should().Throw<DomainValidationException>().WithParameterName("notes").WithMessage("*Notes cannot exceed 500 characters.*");
     }
 
     [Theory] // notes must not exceed 500 characters after normalization
     [InlineData(501)]
     [InlineData(750)]
     [InlineData(1000)]
-    public void UpdateDetails_WhenNotesLengthExceedsLimit_ThrowsArgumentException(int notesLength)
+    public void UpdateDetails_WhenNotesLengthExceedsLimit_ThrowsDomainValidationException(int notesLength)
     {
         // Given
         var task = CreateValidTask();
@@ -96,7 +98,7 @@ public class UpdateDetailsTests : TaskItemTestBase
         Action act = () => task.UpdateDetails(UpdatedValidTitle, notesWithInvalidLength, ValidUpdateTime);
 
         // Then
-        act.Should().Throw<ArgumentException>().WithParameterName("notes").WithMessage("*Notes cannot exceed 500 characters.*");
+        act.Should().Throw<DomainValidationException>().WithParameterName("notes").WithMessage("*Notes cannot exceed 500 characters.*");
     }
 
     [Theory] // notes are normalized to null instead of being stored as empty text

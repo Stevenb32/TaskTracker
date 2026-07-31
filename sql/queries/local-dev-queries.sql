@@ -1,14 +1,11 @@
 -- view all tasks
-SELECT
-    "Id",
-    "Title",
-    "Notes",
-    "Status",
-    "CreatedAt",
-    "CompletedAt",
-    "UpdatedAt"
+SELECT *
 FROM public."Tasks"
 LIMIT 1000;
+
+SELECT COUNT(*)
+FROM "Tasks"
+WHERE "Priority" IS NULL;
 
 -- create  task
 INSERT INTO public."Tasks"

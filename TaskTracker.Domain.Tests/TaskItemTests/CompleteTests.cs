@@ -1,9 +1,11 @@
+using TaskTracker.Domain.Exceptions;
+
 namespace TaskTracker.Domain.Tests.TaskItemTests;
 
 public class CompleteTests : TaskItemTestBase
 {
     [Fact] // complete requires a real timestamp and rejects default value
-    public void Complete_WhenTimeIsDefault_ThrowsArgumentException()
+    public void Complete_WhenTimeIsDefault_ThrowsDomainValidationException()
     {
         // Given
         var task = CreateValidTask();
@@ -12,7 +14,7 @@ public class CompleteTests : TaskItemTestBase
         Action act = () => task.Complete(DefaultTime);
 
         // Then
-        act.Should().Throw<ArgumentException>().WithParameterName("now").WithMessage("*Now must be a valid time.*");
+        act.Should().Throw<DomainValidationException>().WithParameterName("now").WithMessage("*Now must be a valid time.*");
     }
 
     [Fact] // complete is idempotent once a task is already completed
