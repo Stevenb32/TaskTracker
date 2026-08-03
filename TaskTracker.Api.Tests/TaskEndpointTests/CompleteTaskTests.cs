@@ -38,7 +38,11 @@ public class CompleteTaskTests : IClassFixture<TaskTrackerWebApplicationFactory>
         // Given
         await _factory.ResetDatabaseAsync();
 
-        var createdTask = TaskItem.Create("Buy milk", "From the store", new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero));        
+        var createdTask = TaskItem.Create(
+            "Buy milk", 
+            "From the store",
+            TaskPriority.Low,  
+            new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero));        
 
         await _factory.AddTaskAsync(createdTask);
 
@@ -61,12 +65,16 @@ public class CompleteTaskTests : IClassFixture<TaskTrackerWebApplicationFactory>
         // Given
         await _factory.ResetDatabaseAsync();
 
-        var createdtask = TaskItem.Create("Buy milk", "From the store", new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero));        
+        var createdTask = TaskItem.Create(
+            "Buy milk", 
+            "From the store", 
+            TaskPriority.Low,
+            new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero));        
 
-        await _factory.AddTaskAsync(createdtask);
+        await _factory.AddTaskAsync(createdTask);
 
         // When        
-        var completeResponse = await _client.PostAsync($"/tasks/{createdtask.Id}/complete", null);
+        var completeResponse = await _client.PostAsync($"/tasks/{createdTask.Id}/complete", null);
 
         // Then
         completeResponse.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -75,7 +83,7 @@ public class CompleteTaskTests : IClassFixture<TaskTrackerWebApplicationFactory>
 
         completedTask.Should().NotBeNull();
     
-        completedTask.Id.Should().Be(createdtask.Id);
+        completedTask.Id.Should().Be(createdTask.Id);
         completedTask.Status.Should().Be(Domain.TaskStatus.Completed.ToString());
     }
 
@@ -85,7 +93,11 @@ public class CompleteTaskTests : IClassFixture<TaskTrackerWebApplicationFactory>
         // Given
         await _factory.ResetDatabaseAsync();
 
-        var createdTask = TaskItem.Create("Buy milk", "From the store", new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero));                
+        var createdTask = TaskItem.Create(
+            "Buy milk", 
+            "From the store", 
+            TaskPriority.Low,
+            new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero));                
 
         await _factory.AddTaskAsync(createdTask);        
 
@@ -114,7 +126,11 @@ public class CompleteTaskTests : IClassFixture<TaskTrackerWebApplicationFactory>
         // Given
         await _factory.ResetDatabaseAsync();
 
-        var createdTask = TaskItem.Create("Buy milk", "From the store", new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero));        
+        var createdTask = TaskItem.Create(
+            "Buy milk", 
+            "From the store", 
+            TaskPriority.Low,
+            new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero));        
 
         await _factory.AddTaskAsync(createdTask);
 
@@ -144,7 +160,11 @@ public class CompleteTaskTests : IClassFixture<TaskTrackerWebApplicationFactory>
         // Given
         await _factory.ResetDatabaseAsync();
 
-        var createdTask = TaskItem.Create("Buy milk", "From the store", new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero));
+        var createdTask = TaskItem.Create(
+            "Buy milk", 
+            "From the store", 
+            TaskPriority.Low,
+            new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero));
 
         await _factory.AddTaskAsync(createdTask);
 
@@ -168,6 +188,8 @@ public class CompleteTaskTests : IClassFixture<TaskTrackerWebApplicationFactory>
         secondCompletedTask.Title.Should().Be(firstCompletedTask.Title);
         secondCompletedTask.Notes.Should().Be(firstCompletedTask.Notes);
         secondCompletedTask.Status.Should().Be(firstCompletedTask.Status);
+        firstCompletedTask.Priority.Should().Be(createdTask.Priority.ToString());
+        secondCompletedTask.Priority.Should().Be(firstCompletedTask.Priority);
         secondCompletedTask.CreatedAt.Should().Be(firstCompletedTask.CreatedAt);
         secondCompletedTask.CompletedAt.Should().Be(firstCompletedTask.CompletedAt);
 
@@ -179,6 +201,7 @@ public class CompleteTaskTests : IClassFixture<TaskTrackerWebApplicationFactory>
         savedTask.Title.Should().Be(firstCompletedTask.Title);
         savedTask.Notes.Should().Be(firstCompletedTask.Notes);
         savedTask.Status.Should().Be(Domain.TaskStatus.Completed);
+        savedTask.Priority.Should().Be(createdTask.Priority);
         savedTask.CreatedAt.Should().Be(firstCompletedTask.CreatedAt);
         savedTask.CompletedAt.Should().Be(firstCompletedTask.CompletedAt);
     }

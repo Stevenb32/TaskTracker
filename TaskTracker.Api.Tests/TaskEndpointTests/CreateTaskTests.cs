@@ -25,12 +25,13 @@ public class CreateTaskTests : IClassFixture<TaskTrackerWebApplicationFactory>
 
         var createRequest = new
         {
-            Notes = "Updated notes"
+            Notes = "Updated notes",
+            Priority = TaskPriority.Low
         };
-    
+
         // When
         var createResponse = await _client.PostAsJsonAsync("/tasks", createRequest);
-    
+
         // Then
         createResponse.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
@@ -47,7 +48,8 @@ public class CreateTaskTests : IClassFixture<TaskTrackerWebApplicationFactory>
         var createRequest = new TaskItemCreateRequest
         {
             Title = title!,
-            Notes = "Some note"
+            Notes = "Some note",
+            Priority = TaskPriority.Low
         };
 
         // When
@@ -69,9 +71,10 @@ public class CreateTaskTests : IClassFixture<TaskTrackerWebApplicationFactory>
         var createRequest = new TaskItemCreateRequest
         {
             Title = new string('a', titleLength),
-            Notes = "From the store"
+            Notes = "From the store",
+            Priority = TaskPriority.Low
         };
-    
+
         // When
         var createResponse = await _client.PostAsJsonAsync("/tasks", createRequest);
 
@@ -91,9 +94,10 @@ public class CreateTaskTests : IClassFixture<TaskTrackerWebApplicationFactory>
         var createRequest = new TaskItemCreateRequest
         {
             Title = "Buy milk",
-            Notes = new string('a', notesLength)
+            Notes = new string('a', notesLength),
+            Priority = TaskPriority.Low
         };
-    
+
         // When
         var createResponse = await _client.PostAsJsonAsync("/tasks", createRequest);
 
@@ -104,7 +108,7 @@ public class CreateTaskTests : IClassFixture<TaskTrackerWebApplicationFactory>
     [Theory]
     [InlineData(1)]
     [InlineData(50)]
-    [InlineData(100)]    
+    [InlineData(100)]
     public async Task CreateTask_WhenTitleIs1To100Characters_ReturnsCreated(int titleLength)
     {
         // Given
@@ -113,9 +117,10 @@ public class CreateTaskTests : IClassFixture<TaskTrackerWebApplicationFactory>
         var createRequest = new TaskItemCreateRequest
         {
             Title = new string('a', titleLength),
-            Notes = "From the store"
+            Notes = "From the store",
+            Priority = TaskPriority.Low
         };
-    
+
         // When
         var createResponse = await _client.PostAsJsonAsync("/tasks", createRequest);
 
@@ -131,6 +136,71 @@ public class CreateTaskTests : IClassFixture<TaskTrackerWebApplicationFactory>
 
     [Fact]
     public async Task CreateTask_WithValidRequest_ReturnsCreatedTaskResponse()
+    {
+        // Given
+        await _factory.ResetDatabaseAsync();
+
+        var createRequest = new TaskItemCreateRequest
+        {
+            Title = "Buy milk",
+            Notes = "From the store",
+            Priority = TaskPriority.Critical
+        };
+
+        // When
+        var createResponse = await _client.PostAsJsonAsync("/tasks", createRequest);
+
+        // Then
+        createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+
+        var createdTask = await createResponse.Content.ReadFromJsonAsync<TaskItemResponse>();
+
+        createdTask.Should().NotBeNull();
+
+        createdTask.Id.Should().NotBeEmpty();
+        createdTask.Title.Should().Be(createRequest.Title);
+        createdTask.Notes.Should().Be(createRequest.Notes);
+        createdTask.Priority.Should().Be(createRequest.Priority.ToString());
+        createdTask.Status.Should().Be(Domain.TaskStatus.Active.ToString());
+    }
+
+    [Fact]
+    public async Task CreateTask_WithValidRequest_PersistsTask()
+    {
+        // Given
+        await _factory.ResetDatabaseAsync();
+
+        var createRequest = new TaskItemCreateRequest
+        {
+            Title = "Buy milk",
+            Notes = "From the store",
+            Priority = TaskPriority.Low
+        };
+
+        // When
+        var createResponse = await _client.PostAsJsonAsync("/tasks", createRequest);
+
+        // Then
+        createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+
+        var createdTask = await createResponse.Content.ReadFromJsonAsync<TaskItemResponse>();
+
+        createdTask.Should().NotBeNull();
+
+        var savedTask = await _factory.GetTaskByIdAsync(createdTask.Id);
+
+        savedTask.Should().NotBeNull();
+
+        savedTask!.Id.Should().Be(createdTask.Id);
+        savedTask.Title.Should().Be(createdTask.Title);
+        savedTask.Notes.Should().Be(createdTask.Notes);
+        savedTask.Priority.Should().Be(createRequest.Priority);
+        savedTask.Status.Should().Be(Domain.TaskStatus.Active);
+        savedTask.CompletedAt.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task CreateTask_WhenPriorityIsNotProvided_SetsDefaultPriority()
     {
         // Given
         await _factory.ResetDatabaseAsync();
@@ -154,11 +224,12 @@ public class CreateTaskTests : IClassFixture<TaskTrackerWebApplicationFactory>
         createdTask.Id.Should().NotBeEmpty();
         createdTask.Title.Should().Be(createRequest.Title);
         createdTask.Notes.Should().Be(createRequest.Notes);
-        createdTask.Status.Should().Be(Domain.TaskStatus.Active.ToString());        
+        createdTask.Priority.Should().Be(Domain.TaskPriority.Medium.ToString());
+        createdTask.Status.Should().Be(Domain.TaskStatus.Active.ToString());
     }
 
     [Fact]
-    public async Task CreateTask_WithValidRequest_PersistsTask()
+    public async Task CreateTask_WhenPriorityIsNotProvided_PersistsTask()
     {
         // Given
         await _factory.ResetDatabaseAsync();
@@ -166,7 +237,7 @@ public class CreateTaskTests : IClassFixture<TaskTrackerWebApplicationFactory>
         var createRequest = new TaskItemCreateRequest
         {
             Title = "Buy milk",
-            Notes = "From the store"
+            Notes = "From the store",
         };
 
         // When
@@ -176,8 +247,8 @@ public class CreateTaskTests : IClassFixture<TaskTrackerWebApplicationFactory>
         createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
 
         var createdTask = await createResponse.Content.ReadFromJsonAsync<TaskItemResponse>();
-        
-        createdTask.Should().NotBeNull();        
+
+        createdTask.Should().NotBeNull();
 
         var savedTask = await _factory.GetTaskByIdAsync(createdTask.Id);
 
@@ -186,6 +257,7 @@ public class CreateTaskTests : IClassFixture<TaskTrackerWebApplicationFactory>
         savedTask!.Id.Should().Be(createdTask.Id);
         savedTask.Title.Should().Be(createdTask.Title);
         savedTask.Notes.Should().Be(createdTask.Notes);
+        savedTask.Priority.Should().Be(Domain.TaskPriority.Medium);
         savedTask.Status.Should().Be(Domain.TaskStatus.Active);
         savedTask.CompletedAt.Should().BeNull();
     }
@@ -199,7 +271,8 @@ public class CreateTaskTests : IClassFixture<TaskTrackerWebApplicationFactory>
         var createRequest = new TaskItemCreateRequest
         {
             Title = "Buy milk",
-            Notes = "From the store"
+            Notes = "From the store",
+            Priority = TaskPriority.Low
         };
 
         // When
@@ -224,7 +297,8 @@ public class CreateTaskTests : IClassFixture<TaskTrackerWebApplicationFactory>
         var createRequest = new TaskItemCreateRequest
         {
             Title = "Buy milk",
-            Notes = "From the store"
+            Notes = "From the store",
+            Priority = TaskPriority.Low
         };
 
         var timeBeforeCreate = DateTimeOffset.UtcNow;
@@ -254,7 +328,8 @@ public class CreateTaskTests : IClassFixture<TaskTrackerWebApplicationFactory>
         var createRequest = new TaskItemCreateRequest
         {
             Title = "Buy milk",
-            Notes = "From the store"
+            Notes = "From the store",
+            Priority = TaskPriority.Low
         };
 
         // When
@@ -266,7 +341,7 @@ public class CreateTaskTests : IClassFixture<TaskTrackerWebApplicationFactory>
         var createdTask = await createResponse.Content.ReadFromJsonAsync<TaskItemResponse>();
 
         createdTask.Should().NotBeNull();
-        
+
         createdTask.CompletedAt.Should().BeNull();
     }
 
@@ -279,7 +354,8 @@ public class CreateTaskTests : IClassFixture<TaskTrackerWebApplicationFactory>
         var createRequest = new TaskItemCreateRequest
         {
             Title = "Buy milk",
-            Notes = "From the store"
+            Notes = "From the store",
+            Priority = TaskPriority.Low
         };
 
         // When
@@ -296,4 +372,4 @@ public class CreateTaskTests : IClassFixture<TaskTrackerWebApplicationFactory>
         createResponse.Headers.Location.ToString().Should().Be($"/tasks/{createdTask!.Id}");
     }
 
-} 
+}

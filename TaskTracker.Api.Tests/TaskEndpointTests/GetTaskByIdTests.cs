@@ -21,15 +21,15 @@ public class GetTaskByIdTests : IClassFixture<TaskTrackerWebApplicationFactory>
     public async Task GetTaskById_WhenTaskDoesNotExist_ReturnsNotFound()
     {
         // Given
-        await _factory.ResetDatabaseAsync();        
-        
+        await _factory.ResetDatabaseAsync();
+
         var nonExistentId = Guid.NewGuid();
 
         // When        
         var getTaskByIdResponse = await _client.GetAsync($"/tasks/{nonExistentId}"); // search for GUID
 
         // Then
-        getTaskByIdResponse.StatusCode.Should().Be(HttpStatusCode.NotFound);       
+        getTaskByIdResponse.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 
     [Fact]
@@ -38,7 +38,11 @@ public class GetTaskByIdTests : IClassFixture<TaskTrackerWebApplicationFactory>
         // Given
         await _factory.ResetDatabaseAsync();
 
-        var createdTask = TaskItem.Create("Buy milk", "From the store", new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero));       
+        var createdTask = TaskItem.Create(
+            "Buy milk",
+            "From the store",
+            TaskPriority.Low,
+            new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero));
 
         await _factory.AddTaskAsync(createdTask);
 
@@ -55,16 +59,26 @@ public class GetTaskByIdTests : IClassFixture<TaskTrackerWebApplicationFactory>
         retrievedTask.Id.Should().Be(createdTask.Id);
         retrievedTask.Title.Should().Be(createdTask.Title);
         retrievedTask.Notes.Should().Be(createdTask.Notes);
-    }    
+        retrievedTask.Priority.Should().Be(createdTask.Priority.ToString());
+    }
 
     [Fact]
-    public async Task GetTaskById_ReturnsCorrectTask()
+    public async Task GetTaskById_WhenMultipleTasksExist_ReturnsRequestedTask()
     {
         // Given
         await _factory.ResetDatabaseAsync();
 
-        var firstCreatedTask = TaskItem.Create("Buy milk", "From the store", new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero));
-        var secondCreatedTask = TaskItem.Create("Walk dog", "Around the block", new DateTimeOffset(2026, 3, 25, 8, 0, 0, TimeSpan.Zero));
+        var firstCreatedTask = TaskItem.Create(
+            "Buy milk",
+            "From the store",
+            TaskPriority.Low,
+            new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero));
+
+        var secondCreatedTask = TaskItem.Create(
+            "Walk dog",
+            "Around the block",
+            TaskPriority.High,
+            new DateTimeOffset(2026, 3, 25, 8, 0, 0, TimeSpan.Zero));
 
         await _factory.AddTaskAsync(firstCreatedTask);
         await _factory.AddTaskAsync(secondCreatedTask);
@@ -76,15 +90,15 @@ public class GetTaskByIdTests : IClassFixture<TaskTrackerWebApplicationFactory>
         getTaskByIdResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
         var retrievedTask = await getTaskByIdResponse.Content.ReadFromJsonAsync<TaskItemResponse>();
-        
+
         retrievedTask.Should().NotBeNull();
 
         retrievedTask.Id.Should().Be(firstCreatedTask.Id);
         retrievedTask.Title.Should().Be(firstCreatedTask.Title);
         retrievedTask.Notes.Should().Be(firstCreatedTask.Notes);
+        retrievedTask.Priority.Should().Be(firstCreatedTask.Priority.ToString());
 
         retrievedTask.Id.Should().NotBe(secondCreatedTask.Id);
-        retrievedTask.Title.Should().NotBe(secondCreatedTask.Title);
     }
-    
-} 
+
+}

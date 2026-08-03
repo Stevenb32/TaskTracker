@@ -33,7 +33,7 @@ public class GetTasksTests : IClassFixture<TaskTrackerWebApplicationFactory>
 
         tasks.Should().NotBeNull();
 
-        tasks.Should().BeEmpty();       
+        tasks.Should().BeEmpty();
     }
 
     [Fact]
@@ -42,8 +42,17 @@ public class GetTasksTests : IClassFixture<TaskTrackerWebApplicationFactory>
         // Given
         await _factory.ResetDatabaseAsync();
 
-        var firstCreatedTask = TaskItem.Create("Buy milk", "From the store", new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero));
-        var secondCreatedTask = TaskItem.Create("Walk dog", "Around the block", new DateTimeOffset(2026, 3, 25, 8, 0, 0, TimeSpan.Zero));
+        var firstCreatedTask = TaskItem.Create(
+            "Buy milk", 
+            "From the store", 
+            TaskPriority.High, 
+            new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero));
+
+        var secondCreatedTask = TaskItem.Create(
+            "Walk dog", 
+            "Around the block", 
+            TaskPriority.Critical, 
+            new DateTimeOffset(2026, 3, 25, 8, 0, 0, TimeSpan.Zero));
 
         await _factory.AddTaskAsync(firstCreatedTask);
         await _factory.AddTaskAsync(secondCreatedTask);
@@ -59,16 +68,34 @@ public class GetTasksTests : IClassFixture<TaskTrackerWebApplicationFactory>
         tasks.Should().NotBeNull();
 
         tasks.Should().HaveCount(2);
-        tasks.Should().Contain(t => t.Title == firstCreatedTask.Title && t.Notes == firstCreatedTask.Notes);
-        tasks.Should().Contain(t => t.Title == secondCreatedTask.Title && t.Notes == secondCreatedTask.Notes);
+        tasks.Should().Contain(
+            t => t.Id == firstCreatedTask.Id && 
+            t.Title == firstCreatedTask.Title && 
+            t.Notes == firstCreatedTask.Notes && 
+            t.Status == firstCreatedTask.Status.ToString() && 
+            t.Priority == firstCreatedTask.Priority.ToString());
+        tasks.Should().Contain(
+            t => t.Id == secondCreatedTask.Id && 
+            t.Title == secondCreatedTask.Title && 
+            t.Notes == secondCreatedTask.Notes && 
+            t.Status == secondCreatedTask.Status.ToString() && 
+            t.Priority == secondCreatedTask.Priority.ToString());
     }
 
     [Fact]
     public async Task GetTasks_WhenMultipleTasksExist_ReturnsTasksOrderedByCreatedAtDescending()
     {
         // Given
-        var olderTask = TaskItem.Create("Older task", "Older notes", new DateTimeOffset(2025, 5, 19, 10, 0, 0, TimeSpan.Zero));
-        var newerTask = TaskItem.Create("Newer task", "Newer notes", new DateTimeOffset(2026, 5, 20, 10, 0, 0, TimeSpan.Zero));
+        var olderTask = TaskItem.Create(
+            "Older task", 
+            "Older notes", TaskPriority.High, 
+            new DateTimeOffset(2025, 5, 19, 10, 0, 0, TimeSpan.Zero));
+
+        var newerTask = TaskItem.Create(
+            "Newer task", 
+            "Newer notes", 
+            TaskPriority.Critical, 
+            new DateTimeOffset(2026, 5, 20, 10, 0, 0, TimeSpan.Zero));
 
         await _factory.AddTaskAsync(olderTask);
         await _factory.AddTaskAsync(newerTask);
@@ -84,5 +111,5 @@ public class GetTasksTests : IClassFixture<TaskTrackerWebApplicationFactory>
         tasks.Should().NotBeNull();
         tasks.Select(task => task.Id).Should().ContainInOrder(newerTask.Id, olderTask.Id);
     }
-    
-} 
+
+}

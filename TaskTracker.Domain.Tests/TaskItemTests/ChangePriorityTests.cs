@@ -2,7 +2,7 @@ using TaskTracker.Domain.Exceptions;
 
 namespace TaskTracker.Domain.Tests.TaskItemTests;
 
-public class UpdatePriorityTests : TaskItemTestBase
+public class ChangePriorityTests : TaskItemTestBase
 {
     [Theory]
     [InlineData(TaskPriority.Low)]
