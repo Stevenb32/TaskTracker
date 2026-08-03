@@ -1,7 +1,4 @@
 using System.Net;
-using System.Net.Http.Json;
-using Microsoft.AspNetCore.Mvc.Testing;
-using TaskTracker.Api.Dtos;
 using TaskTracker.Domain;
 
 namespace TaskTracker.Api.Tests.TaskEndpointTests;
@@ -38,12 +35,16 @@ public class DeleteTaskTests : IClassFixture<TaskTrackerWebApplicationFactory>
         // Given
         await _factory.ResetDatabaseAsync();
 
-        var task = TaskItem.Create("Buy milk", "From the store", new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero));
+        var createdTask = TaskItem.Create(
+            "Buy milk", 
+            "From the store", 
+            TaskPriority.Low,
+            new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero));
 
-        await _factory.AddTaskAsync(task);
+        await _factory.AddTaskAsync(createdTask);
     
         // When
-        var deleteResponse = await _client.DeleteAsync($"/tasks/{task.Id}");
+        var deleteResponse = await _client.DeleteAsync($"/tasks/{createdTask.Id}");
     
         // Then
         deleteResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
@@ -55,13 +56,17 @@ public class DeleteTaskTests : IClassFixture<TaskTrackerWebApplicationFactory>
         // Given
         await _factory.ResetDatabaseAsync();
 
-        var task = TaskItem.Create("Buy milk", "From the store", new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero));
+        var createdTask = TaskItem.Create(
+            "Buy milk", 
+            "From the store", 
+            TaskPriority.Low,
+            new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero));
 
-        await _factory.AddTaskAsync(task);        
+        await _factory.AddTaskAsync(createdTask);        
     
         // When
-        var deleteResponse = await _client.DeleteAsync($"/tasks/{task.Id}");
-        var getByIdResponse = await _client.GetAsync($"/tasks/{task.Id}");
+        var deleteResponse = await _client.DeleteAsync($"/tasks/{createdTask.Id}");
+        var getByIdResponse = await _client.GetAsync($"/tasks/{createdTask.Id}");
 
         // Then
         deleteResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);

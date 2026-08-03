@@ -38,7 +38,11 @@ public class ReopenTaskTests : IClassFixture<TaskTrackerWebApplicationFactory>
         // Given
         await _factory.ResetDatabaseAsync();
 
-        var createdTask = TaskItem.Create("Buy milk", "From the store", new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero));        
+        var createdTask = TaskItem.Create(
+            "Buy milk", 
+            "From the store",  
+            TaskPriority.Low,
+            new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero));        
 
         await _factory.AddTaskAsync(createdTask);
 
@@ -63,7 +67,11 @@ public class ReopenTaskTests : IClassFixture<TaskTrackerWebApplicationFactory>
         // Given
         await _factory.ResetDatabaseAsync();
 
-        var createdTask = TaskItem.Create("Buy milk", "From the store", new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero));        
+        var createdTask = TaskItem.Create(
+            "Buy milk", 
+            "From the store",  
+            TaskPriority.Low,
+            new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero));        
 
         await _factory.AddTaskAsync(createdTask);
 
@@ -81,6 +89,7 @@ public class ReopenTaskTests : IClassFixture<TaskTrackerWebApplicationFactory>
 
         reopenedTask.Id.Should().Be(createdTask.Id);
         reopenedTask.Status.Should().Be(Domain.TaskStatus.Active.ToString());
+        reopenedTask.Priority.Should().Be(createdTask.Priority.ToString());
     }
 
     [Fact]
@@ -89,7 +98,11 @@ public class ReopenTaskTests : IClassFixture<TaskTrackerWebApplicationFactory>
         // Given
         await _factory.ResetDatabaseAsync();
 
-        var createdTask = TaskItem.Create("Buy milk", "From the store", new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero));        
+        var createdTask = TaskItem.Create(
+            "Buy milk", 
+            "From the store",  
+            TaskPriority.Low,
+            new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero));        
 
         await _factory.AddTaskAsync(createdTask);
 
@@ -115,7 +128,11 @@ public class ReopenTaskTests : IClassFixture<TaskTrackerWebApplicationFactory>
         // Given
         await _factory.ResetDatabaseAsync();
 
-        var createdTask = TaskItem.Create("Buy milk", "From the store", new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero));        
+        var createdTask = TaskItem.Create(
+            "Buy milk", 
+            "From the store", 
+            TaskPriority.Low, 
+            new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero));        
 
         await _factory.AddTaskAsync(createdTask);
 
@@ -131,6 +148,7 @@ public class ReopenTaskTests : IClassFixture<TaskTrackerWebApplicationFactory>
 
         reopenedTask.Id.Should().Be(createdTask.Id);
         reopenedTask.Status.Should().Be(createdTask.Status.ToString());
+        reopenedTask.Priority.Should().Be(createdTask.Priority.ToString());
         reopenedTask.CompletedAt.Should().Be(createdTask.CompletedAt);
 
         var savedTask = await _factory.GetTaskByIdAsync(createdTask.Id);
@@ -141,6 +159,7 @@ public class ReopenTaskTests : IClassFixture<TaskTrackerWebApplicationFactory>
         savedTask.Title.Should().Be(createdTask.Title);
         savedTask.Notes.Should().Be(createdTask.Notes);
         savedTask.Status.Should().Be(createdTask.Status);
+        savedTask.Priority.Should().Be(createdTask.Priority);
         savedTask.CreatedAt.Should().Be(createdTask.CreatedAt);
         savedTask.CompletedAt.Should().Be(createdTask.CompletedAt);
     }
