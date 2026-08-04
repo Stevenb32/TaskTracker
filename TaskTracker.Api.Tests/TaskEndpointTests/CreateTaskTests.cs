@@ -29,7 +29,10 @@ public class CreateTaskTests : IClassFixture<TaskTrackerWebApplicationFactory>
         };
 
         // When
-        var createResponse = await _client.PostAsJsonAsync("/tasks", createRequest);
+        var createResponse = await _client.PostAsJsonAsync(
+            "/tasks",
+            createRequest,
+            TaskTrackerWebApplicationFactory.JsonSerializerOptions);
 
         // Then
         createResponse.StatusCode.Should().Be(HttpStatusCode.BadRequest);
@@ -52,7 +55,10 @@ public class CreateTaskTests : IClassFixture<TaskTrackerWebApplicationFactory>
         };
 
         // When
-        var createResponse = await _client.PostAsJsonAsync("/tasks", createRequest);
+        var createResponse = await _client.PostAsJsonAsync(
+            "/tasks",
+            createRequest,
+            TaskTrackerWebApplicationFactory.JsonSerializerOptions);
 
         // Then
         createResponse.StatusCode.Should().Be(HttpStatusCode.BadRequest);
@@ -75,7 +81,10 @@ public class CreateTaskTests : IClassFixture<TaskTrackerWebApplicationFactory>
         };
 
         // When
-        var createResponse = await _client.PostAsJsonAsync("/tasks", createRequest);
+        var createResponse = await _client.PostAsJsonAsync(
+            "/tasks",
+            createRequest,
+            TaskTrackerWebApplicationFactory.JsonSerializerOptions);
 
         // Then
         createResponse.StatusCode.Should().Be(HttpStatusCode.BadRequest);
@@ -98,7 +107,10 @@ public class CreateTaskTests : IClassFixture<TaskTrackerWebApplicationFactory>
         };
 
         // When
-        var createResponse = await _client.PostAsJsonAsync("/tasks", createRequest);
+        var createResponse = await _client.PostAsJsonAsync(
+            "/tasks",
+            createRequest,
+            TaskTrackerWebApplicationFactory.JsonSerializerOptions);
 
         // Then
         createResponse.StatusCode.Should().Be(HttpStatusCode.BadRequest);
@@ -121,7 +133,10 @@ public class CreateTaskTests : IClassFixture<TaskTrackerWebApplicationFactory>
         };
 
         // When
-        var createResponse = await _client.PostAsJsonAsync("/tasks", createRequest);
+        var createResponse = await _client.PostAsJsonAsync(
+            "/tasks",
+            createRequest,
+            TaskTrackerWebApplicationFactory.JsonSerializerOptions);
 
         // Then
         createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
@@ -147,7 +162,10 @@ public class CreateTaskTests : IClassFixture<TaskTrackerWebApplicationFactory>
         };
 
         // When
-        var createResponse = await _client.PostAsJsonAsync("/tasks", createRequest);
+        var createResponse = await _client.PostAsJsonAsync(
+            "/tasks",
+            createRequest,
+            TaskTrackerWebApplicationFactory.JsonSerializerOptions);
 
         // Then
         createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
@@ -177,7 +195,10 @@ public class CreateTaskTests : IClassFixture<TaskTrackerWebApplicationFactory>
         };
 
         // When
-        var createResponse = await _client.PostAsJsonAsync("/tasks", createRequest);
+        var createResponse = await _client.PostAsJsonAsync(
+            "/tasks",
+            createRequest,
+            TaskTrackerWebApplicationFactory.JsonSerializerOptions);
 
         // Then
         createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
@@ -211,7 +232,10 @@ public class CreateTaskTests : IClassFixture<TaskTrackerWebApplicationFactory>
         };
 
         // When
-        var createResponse = await _client.PostAsJsonAsync("/tasks", createRequest);
+        var createResponse = await _client.PostAsJsonAsync(
+            "/tasks",
+            createRequest,
+            TaskTrackerWebApplicationFactory.JsonSerializerOptions);
 
         // Then
         createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
@@ -240,7 +264,10 @@ public class CreateTaskTests : IClassFixture<TaskTrackerWebApplicationFactory>
         };
 
         // When
-        var createResponse = await _client.PostAsJsonAsync("/tasks", createRequest);
+        var createResponse = await _client.PostAsJsonAsync(
+            "/tasks",
+            createRequest,
+            TaskTrackerWebApplicationFactory.JsonSerializerOptions);
 
         // Then
         createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
@@ -275,7 +302,10 @@ public class CreateTaskTests : IClassFixture<TaskTrackerWebApplicationFactory>
         };
 
         // When
-        var createResponse = await _client.PostAsJsonAsync("/tasks", createRequest);
+        var createResponse = await _client.PostAsJsonAsync(
+            "/tasks",
+            createRequest,
+            TaskTrackerWebApplicationFactory.JsonSerializerOptions);
 
         // Then
         createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
@@ -303,7 +333,10 @@ public class CreateTaskTests : IClassFixture<TaskTrackerWebApplicationFactory>
         var timeBeforeCreate = DateTimeOffset.UtcNow;
 
         // When
-        var createResponse = await _client.PostAsJsonAsync("/tasks", createRequest);
+        var createResponse = await _client.PostAsJsonAsync(
+            "/tasks",
+            createRequest,
+            TaskTrackerWebApplicationFactory.JsonSerializerOptions);
 
         var timeAfterCreate = DateTimeOffset.UtcNow;
 
@@ -332,7 +365,10 @@ public class CreateTaskTests : IClassFixture<TaskTrackerWebApplicationFactory>
         };
 
         // When
-        var createResponse = await _client.PostAsJsonAsync("/tasks", createRequest);
+        var createResponse = await _client.PostAsJsonAsync(
+            "/tasks",
+            createRequest,
+            TaskTrackerWebApplicationFactory.JsonSerializerOptions);
 
         // Then
         createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
@@ -358,7 +394,10 @@ public class CreateTaskTests : IClassFixture<TaskTrackerWebApplicationFactory>
         };
 
         // When
-        var createResponse = await _client.PostAsJsonAsync("/tasks", createRequest);
+        var createResponse = await _client.PostAsJsonAsync(
+            "/tasks",
+            createRequest,
+            TaskTrackerWebApplicationFactory.JsonSerializerOptions);
 
         // Then
         createResponse.StatusCode.Should().Be(HttpStatusCode.Created);

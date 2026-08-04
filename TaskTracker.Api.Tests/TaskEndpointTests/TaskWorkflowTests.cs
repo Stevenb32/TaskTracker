@@ -30,7 +30,10 @@ public class TaskWorkflowTests : IClassFixture<TaskTrackerWebApplicationFactory>
         };
 
         // When
-        var createResponse = await _client.PostAsJsonAsync("/tasks", createRequest);
+        var createResponse = await _client.PostAsJsonAsync(
+            "/tasks",
+            createRequest,
+            TaskTrackerWebApplicationFactory.JsonSerializerOptions);
         createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
 
         var createdTask = await createResponse.Content.ReadFromJsonAsync<TaskItemResponse>();
@@ -68,7 +71,10 @@ public class TaskWorkflowTests : IClassFixture<TaskTrackerWebApplicationFactory>
             Priority = TaskPriority.Low
         };
 
-        var createResponse = await _client.PostAsJsonAsync("/tasks", createRequest);
+        var createResponse = await _client.PostAsJsonAsync(
+            "/tasks",
+            createRequest,
+            TaskTrackerWebApplicationFactory.JsonSerializerOptions);
         createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
 
         var createdTask = await createResponse.Content.ReadFromJsonAsync<TaskItemResponse>();
@@ -116,7 +122,10 @@ public class TaskWorkflowTests : IClassFixture<TaskTrackerWebApplicationFactory>
             Priority = TaskPriority.Low
         };
 
-        var createResponse = await _client.PostAsJsonAsync("/tasks", createRequest);
+        var createResponse = await _client.PostAsJsonAsync(
+            "/tasks",
+            createRequest,
+            TaskTrackerWebApplicationFactory.JsonSerializerOptions);
         createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
 
         var createdTask = await createResponse.Content.ReadFromJsonAsync<TaskItemResponse>();
@@ -127,7 +136,10 @@ public class TaskWorkflowTests : IClassFixture<TaskTrackerWebApplicationFactory>
             Priority = TaskPriority.Critical
         };
 
-        var changePriorityResponse = await _client.PutAsJsonAsync($"/tasks/{createdTask.Id}/priority", changePriorityRequest);
+        var changePriorityResponse = await _client.PatchAsJsonAsync(
+            $"/tasks/{createdTask.Id}/priority",
+            changePriorityRequest,
+            TaskTrackerWebApplicationFactory.JsonSerializerOptions);
         changePriorityResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
         var updateRequest = new TaskItemUpdateDetailsRequest
@@ -178,7 +190,10 @@ public class TaskWorkflowTests : IClassFixture<TaskTrackerWebApplicationFactory>
             Priority = TaskPriority.Low
         };
 
-        var createResponse = await _client.PostAsJsonAsync("/tasks", createRequest);
+        var createResponse = await _client.PostAsJsonAsync(
+            "/tasks",
+            createRequest,
+            TaskTrackerWebApplicationFactory.JsonSerializerOptions);
         createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
 
         var createdTask = await createResponse.Content.ReadFromJsonAsync<TaskItemResponse>();

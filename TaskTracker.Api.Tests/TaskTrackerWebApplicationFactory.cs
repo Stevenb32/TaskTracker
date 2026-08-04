@@ -4,13 +4,18 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using System.Text.Json;
 using TaskTracker.Api.Data;
+using TaskTracker.Api.Json;
 using TaskTracker.Domain;
 
 namespace TaskTracker.Api.Tests;
 
 public class TaskTrackerWebApplicationFactory : WebApplicationFactory<Program>
 {
+    public static JsonSerializerOptions JsonSerializerOptions { get; } =
+        TaskTrackerJsonSerializerOptions.Create();
+
     private readonly string _databaseName = Guid.NewGuid().ToString();
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)

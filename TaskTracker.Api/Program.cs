@@ -1,9 +1,8 @@
 using Microsoft.EntityFrameworkCore;
-using System.Text.Json.Serialization;
 using TaskTracker.Api.Data;
 using TaskTracker.Api.Endpoints;
-using TaskTracker.Domain;
 using TaskTracker.Api.ErrorHandling;
+using TaskTracker.Api.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,8 +13,7 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.ConfigureHttpJsonOptions(options =>
 {
-    options.SerializerOptions.Converters.Add(
-        new JsonStringEnumConverter<TaskPriority>(namingPolicy: null, allowIntegerValues: false));
+    TaskTrackerJsonSerializerOptions.Configure(options.SerializerOptions);
 });
 
 var connectionString = builder.Configuration.GetConnectionString("TaskTrackerDb");
