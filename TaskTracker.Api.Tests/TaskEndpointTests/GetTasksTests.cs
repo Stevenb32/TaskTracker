@@ -1,6 +1,5 @@
 using System.Net;
 using System.Net.Http.Json;
-using Microsoft.AspNetCore.Mvc.Testing;
 using TaskTracker.Api.Dtos;
 using TaskTracker.Domain;
 
@@ -86,6 +85,8 @@ public class GetTasksTests : IClassFixture<TaskTrackerWebApplicationFactory>
     public async Task GetTasks_WhenMultipleTasksExist_ReturnsTasksOrderedByCreatedAtDescending()
     {
         // Given
+        await _factory.ResetDatabaseAsync();
+
         var olderTask = TaskItem.Create(
             "Older task", 
             "Older notes", TaskPriority.High, 

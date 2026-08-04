@@ -1,6 +1,5 @@
 using System.Net;
 using System.Net.Http.Json;
-using Microsoft.AspNetCore.Mvc.Testing;
 using TaskTracker.Api.Dtos;
 using TaskTracker.Domain;
 
@@ -46,7 +45,8 @@ public class ReopenTaskTests : IClassFixture<TaskTrackerWebApplicationFactory>
 
         await _factory.AddTaskAsync(createdTask);
 
-        await _client.PostAsync($"/tasks/{createdTask.Id}/complete", null);
+        var completeResponse = await _client.PostAsync($"/tasks/{createdTask.Id}/complete", null);
+        completeResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
         // When        
         var reopenResponse = await _client.PostAsync($"/tasks/{createdTask.Id}/reopen", null);
@@ -75,7 +75,8 @@ public class ReopenTaskTests : IClassFixture<TaskTrackerWebApplicationFactory>
 
         await _factory.AddTaskAsync(createdTask);
 
-        await _client.PostAsync($"/tasks/{createdTask.Id}/complete", null);
+        var completeResponse = await _client.PostAsync($"/tasks/{createdTask.Id}/complete", null);
+        completeResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
         // When        
         var reopenResponse = await _client.PostAsync($"/tasks/{createdTask.Id}/reopen", null);
@@ -106,7 +107,8 @@ public class ReopenTaskTests : IClassFixture<TaskTrackerWebApplicationFactory>
 
         await _factory.AddTaskAsync(createdTask);
 
-        await _client.PostAsync($"/tasks/{createdTask.Id}/complete", null);
+        var completeResponse = await _client.PostAsync($"/tasks/{createdTask.Id}/complete", null);
+        completeResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
         // When        
         var reopenResponse = await _client.PostAsync($"/tasks/{createdTask.Id}/reopen", null);

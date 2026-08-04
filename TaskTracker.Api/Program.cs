@@ -14,7 +14,8 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.ConfigureHttpJsonOptions(options =>
 {
-    options.SerializerOptions.Converters.Add(new JsonStringEnumConverter<TaskPriority>(namingPolicy: null, allowIntegerValues: false));
+    options.SerializerOptions.Converters.Add(
+        new JsonStringEnumConverter<TaskPriority>(namingPolicy: null, allowIntegerValues: false));
 });
 
 var connectionString = builder.Configuration.GetConnectionString("TaskTrackerDb");
