@@ -21,6 +21,7 @@ var connectionString = builder.Configuration.GetConnectionString("TaskTrackerDb"
 builder.Services.AddDbContext<TaskTrackerDbContext>(options => options.UseNpgsql(connectionString));
 
 builder.Services.AddValidation();
+builder.Services.AddExceptionHandler<BadRequestExceptionHandler>();
 builder.Services.AddExceptionHandler<DomainValidationExceptionHandler>();
 builder.Services.AddProblemDetails();
 

@@ -1,6 +1,6 @@
+using System.Text;
 using System.Net;
 using System.Net.Http.Json;
-using Microsoft.AspNetCore.Http;
 using TaskTracker.Api.Dtos;
 using TaskTracker.Domain;
 
@@ -32,7 +32,7 @@ public class ChangePriorityTaskTests : IClassFixture<TaskTrackerWebApplicationFa
 
         // When
         var changePriorityResponse = await _client.PatchAsJsonAsync(
-            $"/tasks/{nonExistentId}/priority", 
+            $"/tasks/{nonExistentId}/priority",
             changePriorityRequest,
             TaskTrackerWebApplicationFactory.JsonSerializerOptions);
 
@@ -40,67 +40,233 @@ public class ChangePriorityTaskTests : IClassFixture<TaskTrackerWebApplicationFa
         changePriorityResponse.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 
+    [Fact]
+    public async Task ChangePriority_WhenPriorityIsUnknown_ReturnsBadRequest()
+    {
+        // Given
+        await _factory.ResetDatabaseAsync();
 
+        var createdTask = TaskItem.Create(
+            "Buy milk",
+            "From the store",
+            TaskPriority.Low,
+            new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero));
 
-    // ChangePriority_WhenPriorityIsUnknown_ReturnsBadRequest
+        await _factory.AddTaskAsync(createdTask);
 
+        var changePriorityRequest = new TaskItemChangePriorityRequest
+        {
+            Priority = TaskPriority.Unknown
+        };
 
+        // When
+        var changePriorityResponse = await _client.PatchAsJsonAsync(
+            $"/tasks/{createdTask.Id}/priority",
+            changePriorityRequest,
+            TaskTrackerWebApplicationFactory.JsonSerializerOptions);
 
-    // ChangePriority_WhenPriorityValueIsInvalid_ReturnsBadRequest
+        // Then
+        changePriorityResponse.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
 
+    [Theory]
+    [InlineData("""{}""")]
+    [InlineData("""{"priority":2}""")]
+    [InlineData("""{"priority":99}""")]
+    [InlineData("""{"priority":"banana"}""")]
+    [InlineData("""{"priority":null}""")]
+    public async Task ChangePriority_WhenPriorityPayloadIsInvalid_ReturnsBadRequest(string json)
+    {
+        // Given
+        await _factory.ResetDatabaseAsync();
 
+        var createdTask = TaskItem.Create(
+            "Buy milk",
+            "From the store",
+            TaskPriority.Low,
+            new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero));
 
-    // ChangePriority_WhenPriorityIsNotProvided_ReturnsBadRequest
+        await _factory.AddTaskAsync(createdTask);
 
+        using var content = new StringContent(json, Encoding.UTF8, "application/json");
 
+        // When
+        var response = await _client.PatchAsync($"/tasks/{createdTask.Id}/priority", content);
 
-    // ChangePriority_WhenPriorityIsProvidedAsNumber_ReturnsBadRequest
+        // Then
 
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
 
+    [Fact]
+    public async Task ChangePriority_WhenTaskExists_ReturnsOkWithUpdatedTask()
+    {
+        // Given
+        await _factory.ResetDatabaseAsync();
 
-    // ChangePriority_WhenTaskExists_ReturnsOkWithUpdatedTask
+        var createdTask = TaskItem.Create(
+            "Buy milk",
+            "From the store",
+            TaskPriority.Low,
+            new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero));
 
+        await _factory.AddTaskAsync(createdTask);
 
+        var originalUpdatedAt = createdTask.UpdatedAt;
 
-    // ChangePriority_WhenTaskExists_PersistsUpdatedPriority
+        var changePriorityRequest = new TaskItemChangePriorityRequest
+        {
+            Priority = TaskPriority.Critical
+        };
 
+        // When
+        var changePriorityResponse = await _client.PatchAsJsonAsync(
+            $"/tasks/{createdTask.Id}/priority",
+            changePriorityRequest,
+            TaskTrackerWebApplicationFactory.JsonSerializerOptions);
 
+        // Then
+        changePriorityResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
-    // ChangePriority_WhenTaskIsCompleted_UpdatesPriority
+        var changedTask = await changePriorityResponse.Content.ReadFromJsonAsync<TaskItemResponse>();
 
+        changedTask.Should().NotBeNull();
 
+        changedTask.Id.Should().Be(createdTask.Id);
+        changedTask.Title.Should().Be(createdTask.Title);
+        changedTask.Notes.Should().Be(createdTask.Notes);
+        changedTask.Status.Should().Be(createdTask.Status.ToString());
+        changedTask.Priority.Should().Be(changePriorityRequest.Priority.ToString());
+        changedTask.CreatedAt.Should().Be(createdTask.CreatedAt);
+        changedTask.CompletedAt.Should().BeNull();
+        changedTask.UpdatedAt.Should().NotBe(originalUpdatedAt);
+    }
 
-    // ChangePriority_WhenPriorityIsUnchanged_ReturnsOkWithoutUpdatingTask
+    [Fact]
+    public async Task ChangePriority_WhenTaskExists_PersistsUpdatedPriority()
+    {
+        // Given
+        await _factory.ResetDatabaseAsync();
 
+        var createdTask = TaskItem.Create(
+            "Buy milk",
+            "From the store",
+            TaskPriority.Low,
+            new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero));
 
+        await _factory.AddTaskAsync(createdTask);
 
+        var changePriorityRequest = new TaskItemChangePriorityRequest
+        {
+            Priority = TaskPriority.Critical
+        };
+
+        // When
+        var changePriorityResponse = await _client.PatchAsJsonAsync(
+            $"/tasks/{createdTask.Id}/priority",
+            changePriorityRequest,
+            TaskTrackerWebApplicationFactory.JsonSerializerOptions);
+
+        // Then
+        changePriorityResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var savedTask = await _factory.GetTaskByIdAsync(createdTask.Id);
+
+        savedTask.Should().NotBeNull();
+
+        savedTask.Id.Should().Be(createdTask.Id);
+        savedTask.Title.Should().Be(createdTask.Title);
+        savedTask.Notes.Should().Be(createdTask.Notes);
+        savedTask.Status.Should().Be(createdTask.Status);
+        savedTask.Priority.Should().Be(changePriorityRequest.Priority);
+        savedTask.CreatedAt.Should().Be(createdTask.CreatedAt);
+        savedTask.CompletedAt.Should().BeNull();
+        savedTask.UpdatedAt.Should().NotBeNull();
+    }
+
+    [Fact]
+    public async Task ChangePriority_WhenTaskIsCompleted_UpdatesPriority()
+    {
+        // Given
+        await _factory.ResetDatabaseAsync();
+
+        var createdTask = TaskItem.Create(
+            "Buy milk",
+            "From the store",
+            TaskPriority.Low,
+            new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero));
+
+        createdTask.Complete(new DateTimeOffset(2026, 3, 25, 8, 0, 0, TimeSpan.Zero));
+
+        await _factory.AddTaskAsync(createdTask);
+
+        var changePriorityRequest = new TaskItemChangePriorityRequest
+        {
+            Priority = TaskPriority.Critical
+        };
+
+        // When
+        var changePriorityResponse = await _client.PatchAsJsonAsync(
+            $"/tasks/{createdTask.Id}/priority",
+            changePriorityRequest,
+            TaskTrackerWebApplicationFactory.JsonSerializerOptions);
+
+        // Then
+        changePriorityResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var changedTask = await changePriorityResponse.Content.ReadFromJsonAsync<TaskItemResponse>();
+
+        changedTask.Should().NotBeNull();
+
+        changedTask.Id.Should().Be(createdTask.Id);
+        changedTask.Status.Should().Be(Domain.TaskStatus.Completed.ToString());
+        changedTask.Priority.Should().Be(changePriorityRequest.Priority.ToString());
+        changedTask.CompletedAt.Should().Be(createdTask.CompletedAt);
+        changedTask.UpdatedAt.Should().NotBeNull();
+    }
+
+    [Fact]
+    public async Task ChangePriority_WhenPriorityIsUnchanged_ReturnsOkWithoutUpdatingTask()
+    {
+        // Given
+        await _factory.ResetDatabaseAsync();
+
+        var createdTask = TaskItem.Create(
+            "Buy milk",
+            "From the store",
+            TaskPriority.Low,
+            new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero));
+
+        await _factory.AddTaskAsync(createdTask);
+
+        var originalUpdatedAt = createdTask.UpdatedAt;
+
+        var changePriorityRequest = new TaskItemChangePriorityRequest
+        {
+            Priority = createdTask.Priority
+        };
+
+        // When
+        var changePriorityResponse = await _client.PatchAsJsonAsync(
+            $"/tasks/{createdTask.Id}/priority",
+            changePriorityRequest,
+            TaskTrackerWebApplicationFactory.JsonSerializerOptions);
+
+        // Then
+        changePriorityResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var changedTask = await changePriorityResponse.Content.ReadFromJsonAsync<TaskItemResponse>();
+
+        changedTask.Should().NotBeNull();
+
+        changedTask.Id.Should().Be(createdTask.Id);
+        changedTask.Title.Should().Be(createdTask.Title);
+        changedTask.Notes.Should().Be(createdTask.Notes);
+        changedTask.Status.Should().Be(createdTask.Status.ToString());
+        changedTask.Priority.Should().Be(createdTask.Priority.ToString());
+        changedTask.CreatedAt.Should().Be(createdTask.CreatedAt);
+        changedTask.CompletedAt.Should().Be(createdTask.CompletedAt);
+        changedTask.UpdatedAt.Should().Be(originalUpdatedAt);
+    }
 
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

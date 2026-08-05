@@ -108,7 +108,7 @@ public class ReopenTaskTests : IClassFixture<TaskTrackerWebApplicationFactory>
         await _factory.AddTaskAsync(createdTask);
 
         var completeResponse = await _client.PostAsync($"/tasks/{createdTask.Id}/complete", null);
-        completeResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        completeResponse.StatusCode.Should().Be(HttpStatusCode.OK); 
 
         // When        
         var reopenResponse = await _client.PostAsync($"/tasks/{createdTask.Id}/reopen", null);
