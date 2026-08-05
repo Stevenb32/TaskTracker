@@ -52,7 +52,7 @@ public class UpdateTaskDetailsTests : IClassFixture<TaskTrackerWebApplicationFac
 
         await _factory.AddTaskAsync(createdTask);
 
-        var updateRequest = new TaskItemUpdateDetailsRequest
+        var updateRequest = new
         {
             Notes = "Updated notes"
         };

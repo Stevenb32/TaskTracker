@@ -161,11 +161,15 @@ public class ChangePriorityTaskTests : IClassFixture<TaskTrackerWebApplicationFa
             Priority = TaskPriority.Critical
         };
 
+        var timeBeforeChange = DateTimeOffset.UtcNow;
+
         // When
         var changePriorityResponse = await _client.PatchAsJsonAsync(
             $"/tasks/{createdTask.Id}/priority",
             changePriorityRequest,
             TaskTrackerWebApplicationFactory.JsonSerializerOptions);
+
+        var timeAfterChange = DateTimeOffset.UtcNow;
 
         // Then
         changePriorityResponse.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -182,6 +186,8 @@ public class ChangePriorityTaskTests : IClassFixture<TaskTrackerWebApplicationFa
         savedTask.CreatedAt.Should().Be(createdTask.CreatedAt);
         savedTask.CompletedAt.Should().BeNull();
         savedTask.UpdatedAt.Should().NotBeNull();
+        savedTask.UpdatedAt.Should().BeOnOrAfter(timeBeforeChange);
+        savedTask.UpdatedAt.Should().BeOnOrBefore(timeAfterChange);
     }
 
     [Fact]

@@ -42,15 +42,15 @@ public class GetTasksTests : IClassFixture<TaskTrackerWebApplicationFactory>
         await _factory.ResetDatabaseAsync();
 
         var firstCreatedTask = TaskItem.Create(
-            "Buy milk", 
-            "From the store", 
-            TaskPriority.High, 
+            "Buy milk",
+            "From the store",
+            TaskPriority.High,
             new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero));
 
         var secondCreatedTask = TaskItem.Create(
-            "Walk dog", 
-            "Around the block", 
-            TaskPriority.Critical, 
+            "Walk dog",
+            "Around the block",
+            TaskPriority.Critical,
             new DateTimeOffset(2026, 3, 25, 8, 0, 0, TimeSpan.Zero));
 
         await _factory.AddTaskAsync(firstCreatedTask);
@@ -65,20 +65,21 @@ public class GetTasksTests : IClassFixture<TaskTrackerWebApplicationFactory>
         var tasks = await getTasksResponse.Content.ReadFromJsonAsync<List<TaskItemResponse>>();
 
         tasks.Should().NotBeNull();
-
         tasks.Should().HaveCount(2);
-        tasks.Should().Contain(
-            t => t.Id == firstCreatedTask.Id && 
-            t.Title == firstCreatedTask.Title && 
-            t.Notes == firstCreatedTask.Notes && 
-            t.Status == firstCreatedTask.Status.ToString() && 
-            t.Priority == firstCreatedTask.Priority.ToString());
-        tasks.Should().Contain(
-            t => t.Id == secondCreatedTask.Id && 
-            t.Title == secondCreatedTask.Title && 
-            t.Notes == secondCreatedTask.Notes && 
-            t.Status == secondCreatedTask.Status.ToString() && 
-            t.Priority == secondCreatedTask.Priority.ToString());
+
+        var firstTask = tasks.Single(task => task.Id == firstCreatedTask.Id);
+
+        firstTask.Title.Should().Be(firstCreatedTask.Title);
+        firstTask.Notes.Should().Be(firstCreatedTask.Notes);
+        firstTask.Status.Should().Be(firstCreatedTask.Status.ToString());
+        firstTask.Priority.Should().Be(firstCreatedTask.Priority.ToString());
+
+        var secondTask = tasks.Single(task => task.Id == secondCreatedTask.Id);
+
+        secondTask.Title.Should().Be(secondCreatedTask.Title);
+        secondTask.Notes.Should().Be(secondCreatedTask.Notes);
+        secondTask.Status.Should().Be(secondCreatedTask.Status.ToString());
+        secondTask.Priority.Should().Be(secondCreatedTask.Priority.ToString());
     }
 
     [Fact]
@@ -88,14 +89,14 @@ public class GetTasksTests : IClassFixture<TaskTrackerWebApplicationFactory>
         await _factory.ResetDatabaseAsync();
 
         var olderTask = TaskItem.Create(
-            "Older task", 
-            "Older notes", TaskPriority.High, 
+            "Older task",
+            "Older notes", TaskPriority.High,
             new DateTimeOffset(2025, 5, 19, 10, 0, 0, TimeSpan.Zero));
 
         var newerTask = TaskItem.Create(
-            "Newer task", 
-            "Newer notes", 
-            TaskPriority.Critical, 
+            "Newer task",
+            "Newer notes",
+            TaskPriority.Critical,
             new DateTimeOffset(2026, 5, 20, 10, 0, 0, TimeSpan.Zero));
 
         await _factory.AddTaskAsync(olderTask);
@@ -110,7 +111,7 @@ public class GetTasksTests : IClassFixture<TaskTrackerWebApplicationFactory>
         var tasks = await getTasksResponse.Content.ReadFromJsonAsync<List<TaskItemResponse>>();
 
         tasks.Should().NotBeNull();
-        tasks.Select(task => task.Id).Should().ContainInOrder(newerTask.Id, olderTask.Id);
+        tasks.Select(task => task.Id).Should().Equal(newerTask.Id, olderTask.Id);
     }
 
 }

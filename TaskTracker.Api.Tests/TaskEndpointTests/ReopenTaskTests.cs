@@ -138,6 +138,8 @@ public class ReopenTaskTests : IClassFixture<TaskTrackerWebApplicationFactory>
 
         await _factory.AddTaskAsync(createdTask);
 
+        var originalUpdatedAt = createdTask.UpdatedAt;
+
         // When        
         var reopenResponse = await _client.PostAsync($"/tasks/{createdTask.Id}/reopen", null);
 
@@ -152,6 +154,7 @@ public class ReopenTaskTests : IClassFixture<TaskTrackerWebApplicationFactory>
         reopenedTask.Status.Should().Be(createdTask.Status.ToString());
         reopenedTask.Priority.Should().Be(createdTask.Priority.ToString());
         reopenedTask.CompletedAt.Should().Be(createdTask.CompletedAt);
+        reopenedTask.UpdatedAt.Should().Be(originalUpdatedAt);
 
         var savedTask = await _factory.GetTaskByIdAsync(createdTask.Id);
 
@@ -164,6 +167,7 @@ public class ReopenTaskTests : IClassFixture<TaskTrackerWebApplicationFactory>
         savedTask.Priority.Should().Be(createdTask.Priority);
         savedTask.CreatedAt.Should().Be(createdTask.CreatedAt);
         savedTask.CompletedAt.Should().Be(createdTask.CompletedAt);
+        savedTask.UpdatedAt.Should().Be(originalUpdatedAt);
     }
     
 } 

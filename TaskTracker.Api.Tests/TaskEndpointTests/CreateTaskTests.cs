@@ -1,3 +1,4 @@
+using System.Text;
 using System.Net;
 using System.Net.Http.Json;
 using TaskTracker.Api.Dtos;
@@ -14,6 +15,48 @@ public class CreateTaskTests : IClassFixture<TaskTrackerWebApplicationFactory>
     {
         _factory = factory;
         _client = factory.CreateClient();
+    }
+
+    [Fact]
+    public async Task CreateTask_WhenPriorityIsUnknown_ReturnsBadRequest()
+    {
+        // Given
+        await _factory.ResetDatabaseAsync();
+
+        var createRequest = new TaskItemCreateRequest
+        {
+            Title = "Buy milk",
+            Notes = "From the store",
+            Priority = TaskPriority.Unknown
+        };
+
+        // When
+        var createResponse = await _client.PostAsJsonAsync(
+            "/tasks",
+            createRequest,
+            TaskTrackerWebApplicationFactory.JsonSerializerOptions);
+
+        // Then
+        createResponse.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
+
+    [Theory]
+    [InlineData("""{"title":"Buy milk","notes":"From the store","priority":2}""")]
+    [InlineData("""{"title":"Buy milk","notes":"From the store","priority":99}""")]
+    [InlineData("""{"title":"Buy milk","notes":"From the store","priority":"banana"}""")]
+    [InlineData("""{"title":"Buy milk","notes":"From the store","priority":null}""")]
+    public async Task CreateTask_WhenPriorityPayloadIsInvalid_ReturnsBadRequest(string json)
+    {
+        // Given
+        await _factory.ResetDatabaseAsync();
+
+        using var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+        // When
+        var createResponse = await _client.PostAsync("/tasks", content);
+
+        // Then
+        createResponse.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
 
     [Fact]
