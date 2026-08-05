@@ -1,6 +1,6 @@
-using System.Text;
 using System.Net;
 using System.Net.Http.Json;
+using System.Text;
 using TaskTracker.Api.Dtos;
 using TaskTracker.Domain;
 
@@ -67,7 +67,7 @@ public class CreateTaskTests : IClassFixture<TaskTrackerWebApplicationFactory>
 
         var createRequest = new
         {
-            Notes = "Updated notes",
+            Notes = "From the store",
             Priority = TaskPriority.Low
         };
 
@@ -82,9 +82,9 @@ public class CreateTaskTests : IClassFixture<TaskTrackerWebApplicationFactory>
     }
 
     [Theory]
-    [InlineData(null)] // null
-    [InlineData("")] // empty
-    [InlineData(" ")] // whitespace
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData(" ")]
     public async Task CreateTask_WhenTitleIsNullEmptyOrWhitespace_ReturnsBadRequest(string? title)
     {
         // Given
@@ -187,12 +187,11 @@ public class CreateTaskTests : IClassFixture<TaskTrackerWebApplicationFactory>
         var createdTask = await createResponse.Content.ReadFromJsonAsync<TaskItemResponse>();
 
         createdTask.Should().NotBeNull();
-
-        createdTask.Title.Should().HaveLength(titleLength);
+        createdTask!.Title.Should().HaveLength(titleLength);
     }
 
     [Fact]
-    public async Task CreateTask_WithValidRequest_ReturnsCreatedTaskResponse()
+    public async Task CreateTask_WithValidRequest_ReturnsCreatedResponseAndPersistsTask()
     {
         // Given
         await _factory.ResetDatabaseAsync();
@@ -204,11 +203,15 @@ public class CreateTaskTests : IClassFixture<TaskTrackerWebApplicationFactory>
             Priority = TaskPriority.Critical
         };
 
+        var timeBeforeCreate = DateTimeOffset.UtcNow;
+
         // When
         var createResponse = await _client.PostAsJsonAsync(
             "/tasks",
             createRequest,
             TaskTrackerWebApplicationFactory.JsonSerializerOptions);
+
+        var timeAfterCreate = DateTimeOffset.UtcNow;
 
         // Then
         createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
@@ -216,54 +219,34 @@ public class CreateTaskTests : IClassFixture<TaskTrackerWebApplicationFactory>
         var createdTask = await createResponse.Content.ReadFromJsonAsync<TaskItemResponse>();
 
         createdTask.Should().NotBeNull();
-
-        createdTask.Id.Should().NotBeEmpty();
+        createdTask!.Id.Should().NotBeEmpty();
         createdTask.Title.Should().Be(createRequest.Title);
         createdTask.Notes.Should().Be(createRequest.Notes);
         createdTask.Priority.Should().Be(createRequest.Priority.ToString());
         createdTask.Status.Should().Be(Domain.TaskStatus.Active.ToString());
-    }
+        createdTask.CreatedAt.Should().BeOnOrAfter(timeBeforeCreate);
+        createdTask.CreatedAt.Should().BeOnOrBefore(timeAfterCreate);
+        createdTask.CompletedAt.Should().BeNull();
+        createdTask.UpdatedAt.Should().BeNull();
 
-    [Fact]
-    public async Task CreateTask_WithValidRequest_PersistsTask()
-    {
-        // Given
-        await _factory.ResetDatabaseAsync();
-
-        var createRequest = new TaskItemCreateRequest
-        {
-            Title = "Buy milk",
-            Notes = "From the store",
-            Priority = TaskPriority.Low
-        };
-
-        // When
-        var createResponse = await _client.PostAsJsonAsync(
-            "/tasks",
-            createRequest,
-            TaskTrackerWebApplicationFactory.JsonSerializerOptions);
-
-        // Then
-        createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
-
-        var createdTask = await createResponse.Content.ReadFromJsonAsync<TaskItemResponse>();
-
-        createdTask.Should().NotBeNull();
+        createResponse.Headers.Location.Should().NotBeNull();
+        createResponse.Headers.Location!.ToString().Should().Be($"/tasks/{createdTask.Id}");
 
         var savedTask = await _factory.GetTaskByIdAsync(createdTask.Id);
 
         savedTask.Should().NotBeNull();
-
         savedTask!.Id.Should().Be(createdTask.Id);
         savedTask.Title.Should().Be(createdTask.Title);
         savedTask.Notes.Should().Be(createdTask.Notes);
         savedTask.Priority.Should().Be(createRequest.Priority);
         savedTask.Status.Should().Be(Domain.TaskStatus.Active);
+        savedTask.CreatedAt.Should().Be(createdTask.CreatedAt);
         savedTask.CompletedAt.Should().BeNull();
+        savedTask.UpdatedAt.Should().BeNull();
     }
 
     [Fact]
-    public async Task CreateTask_WhenPriorityIsNotProvided_SetsDefaultPriority()
+    public async Task CreateTask_WhenPriorityIsNotProvided_UsesAndPersistsDefaultPriority()
     {
         // Given
         await _factory.ResetDatabaseAsync();
@@ -286,171 +269,21 @@ public class CreateTaskTests : IClassFixture<TaskTrackerWebApplicationFactory>
         var createdTask = await createResponse.Content.ReadFromJsonAsync<TaskItemResponse>();
 
         createdTask.Should().NotBeNull();
-
-        createdTask.Id.Should().NotBeEmpty();
+        createdTask!.Id.Should().NotBeEmpty();
         createdTask.Title.Should().Be(createRequest.Title);
         createdTask.Notes.Should().Be(createRequest.Notes);
-        createdTask.Priority.Should().Be(Domain.TaskPriority.Medium.ToString());
+        createdTask.Priority.Should().Be(TaskPriority.Medium.ToString());
         createdTask.Status.Should().Be(Domain.TaskStatus.Active.ToString());
-    }
-
-    [Fact]
-    public async Task CreateTask_WhenPriorityIsNotProvided_PersistsTask()
-    {
-        // Given
-        await _factory.ResetDatabaseAsync();
-
-        var createRequest = new TaskItemCreateRequest
-        {
-            Title = "Buy milk",
-            Notes = "From the store",
-        };
-
-        // When
-        var createResponse = await _client.PostAsJsonAsync(
-            "/tasks",
-            createRequest,
-            TaskTrackerWebApplicationFactory.JsonSerializerOptions);
-
-        // Then
-        createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
-
-        var createdTask = await createResponse.Content.ReadFromJsonAsync<TaskItemResponse>();
-
-        createdTask.Should().NotBeNull();
 
         var savedTask = await _factory.GetTaskByIdAsync(createdTask.Id);
 
         savedTask.Should().NotBeNull();
-
         savedTask!.Id.Should().Be(createdTask.Id);
         savedTask.Title.Should().Be(createdTask.Title);
         savedTask.Notes.Should().Be(createdTask.Notes);
-        savedTask.Priority.Should().Be(Domain.TaskPriority.Medium);
+        savedTask.Priority.Should().Be(TaskPriority.Medium);
         savedTask.Status.Should().Be(Domain.TaskStatus.Active);
         savedTask.CompletedAt.Should().BeNull();
+        savedTask.UpdatedAt.Should().BeNull();
     }
-
-    [Fact]
-    public async Task CreateTask_SetsInitialStatusToActive()
-    {
-        // Given
-        await _factory.ResetDatabaseAsync();
-
-        var createRequest = new TaskItemCreateRequest
-        {
-            Title = "Buy milk",
-            Notes = "From the store",
-            Priority = TaskPriority.Low
-        };
-
-        // When
-        var createResponse = await _client.PostAsJsonAsync(
-            "/tasks",
-            createRequest,
-            TaskTrackerWebApplicationFactory.JsonSerializerOptions);
-
-        // Then
-        createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
-
-        var createdTask = await createResponse.Content.ReadFromJsonAsync<TaskItemResponse>();
-
-        createdTask.Should().NotBeNull();
-
-        createdTask.Status.Should().Be(Domain.TaskStatus.Active.ToString());
-    }
-
-    [Fact]
-    public async Task CreateTask_SetsCreatedDate()
-    {
-        // Given
-        await _factory.ResetDatabaseAsync();
-
-        var createRequest = new TaskItemCreateRequest
-        {
-            Title = "Buy milk",
-            Notes = "From the store",
-            Priority = TaskPriority.Low
-        };
-
-        var timeBeforeCreate = DateTimeOffset.UtcNow;
-
-        // When
-        var createResponse = await _client.PostAsJsonAsync(
-            "/tasks",
-            createRequest,
-            TaskTrackerWebApplicationFactory.JsonSerializerOptions);
-
-        var timeAfterCreate = DateTimeOffset.UtcNow;
-
-        // Then
-        createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
-
-        var createdTask = await createResponse.Content.ReadFromJsonAsync<TaskItemResponse>();
-
-        createdTask.Should().NotBeNull();
-
-        createdTask.CreatedAt.Should().BeOnOrAfter(timeBeforeCreate);
-        createdTask.CreatedAt.Should().BeOnOrBefore(timeAfterCreate);
-    }
-
-    [Fact]
-    public async Task CreateTask_SetsCompletedAtToNull()
-    {
-        // Given
-        await _factory.ResetDatabaseAsync();
-
-        var createRequest = new TaskItemCreateRequest
-        {
-            Title = "Buy milk",
-            Notes = "From the store",
-            Priority = TaskPriority.Low
-        };
-
-        // When
-        var createResponse = await _client.PostAsJsonAsync(
-            "/tasks",
-            createRequest,
-            TaskTrackerWebApplicationFactory.JsonSerializerOptions);
-
-        // Then
-        createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
-
-        var createdTask = await createResponse.Content.ReadFromJsonAsync<TaskItemResponse>();
-
-        createdTask.Should().NotBeNull();
-
-        createdTask.CompletedAt.Should().BeNull();
-    }
-
-    [Fact]
-    public async Task CreateTask_ReturnsLocationHeaderForCreatedResource()
-    {
-        // Given
-        await _factory.ResetDatabaseAsync();
-
-        var createRequest = new TaskItemCreateRequest
-        {
-            Title = "Buy milk",
-            Notes = "From the store",
-            Priority = TaskPriority.Low
-        };
-
-        // When
-        var createResponse = await _client.PostAsJsonAsync(
-            "/tasks",
-            createRequest,
-            TaskTrackerWebApplicationFactory.JsonSerializerOptions);
-
-        // Then
-        createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
-        createResponse.Headers.Location.Should().NotBeNull();
-
-        var createdTask = await createResponse.Content.ReadFromJsonAsync<TaskItemResponse>();
-
-        createdTask.Should().NotBeNull();
-
-        createResponse.Headers.Location.ToString().Should().Be($"/tasks/{createdTask!.Id}");
-    }
-
 }

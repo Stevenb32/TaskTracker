@@ -73,6 +73,9 @@ public class GetTasksTests : IClassFixture<TaskTrackerWebApplicationFactory>
         firstTask.Notes.Should().Be(firstCreatedTask.Notes);
         firstTask.Status.Should().Be(firstCreatedTask.Status.ToString());
         firstTask.Priority.Should().Be(firstCreatedTask.Priority.ToString());
+        firstTask.CreatedAt.Should().Be(firstCreatedTask.CreatedAt);
+        firstTask.CompletedAt.Should().Be(firstCreatedTask.CompletedAt);
+        firstTask.UpdatedAt.Should().Be(firstCreatedTask.UpdatedAt);
 
         var secondTask = tasks.Single(task => task.Id == secondCreatedTask.Id);
 
@@ -80,6 +83,9 @@ public class GetTasksTests : IClassFixture<TaskTrackerWebApplicationFactory>
         secondTask.Notes.Should().Be(secondCreatedTask.Notes);
         secondTask.Status.Should().Be(secondCreatedTask.Status.ToString());
         secondTask.Priority.Should().Be(secondCreatedTask.Priority.ToString());
+        secondTask.CreatedAt.Should().Be(secondCreatedTask.CreatedAt);
+        secondTask.CompletedAt.Should().Be(secondCreatedTask.CompletedAt);
+        secondTask.UpdatedAt.Should().Be(secondCreatedTask.UpdatedAt);
     }
 
     [Fact]

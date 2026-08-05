@@ -22,9 +22,9 @@ public class ReopenTaskTests : IClassFixture<TaskTrackerWebApplicationFactory>
         // Given
         await _factory.ResetDatabaseAsync();
 
-        var nonExistentId = Guid.NewGuid();        
+        var nonExistentId = Guid.NewGuid();
 
-        // When        
+        // When
         var reopenResponse = await _client.PostAsync($"/tasks/{nonExistentId}/reopen", null);
 
         // Then
@@ -32,24 +32,27 @@ public class ReopenTaskTests : IClassFixture<TaskTrackerWebApplicationFactory>
     }
 
     [Fact]
-    public async Task ReopenTask_WhenTaskExists_ReturnsOk()
+    public async Task ReopenTask_WhenCompletedTaskExists_ReturnsOkWithReopenedTask()
     {
         // Given
         await _factory.ResetDatabaseAsync();
 
         var createdTask = TaskItem.Create(
-            "Buy milk", 
-            "From the store",  
+            "Buy milk",
+            "From the store",
             TaskPriority.Low,
-            new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero));        
+            new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero));
 
+        createdTask.Complete(new DateTimeOffset(2026, 3, 25, 8, 0, 0, TimeSpan.Zero));
         await _factory.AddTaskAsync(createdTask);
 
-        var completeResponse = await _client.PostAsync($"/tasks/{createdTask.Id}/complete", null);
-        completeResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        var originalUpdatedAt = createdTask.UpdatedAt;
+        var timeBeforeReopen = DateTimeOffset.UtcNow;
 
-        // When        
+        // When
         var reopenResponse = await _client.PostAsync($"/tasks/{createdTask.Id}/reopen", null);
+
+        var timeAfterReopen = DateTimeOffset.UtcNow;
 
         // Then
         reopenResponse.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -57,72 +60,29 @@ public class ReopenTaskTests : IClassFixture<TaskTrackerWebApplicationFactory>
         var reopenedTask = await reopenResponse.Content.ReadFromJsonAsync<TaskItemResponse>();
 
         reopenedTask.Should().NotBeNull();
-
-        reopenedTask.Id.Should().Be(createdTask.Id);
-    }
-
-    [Fact]
-    public async Task ReopenTask_WhenTaskExists_UpdatesStatusToActive()
-    {
-        // Given
-        await _factory.ResetDatabaseAsync();
-
-        var createdTask = TaskItem.Create(
-            "Buy milk", 
-            "From the store",  
-            TaskPriority.Low,
-            new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero));        
-
-        await _factory.AddTaskAsync(createdTask);
-
-        var completeResponse = await _client.PostAsync($"/tasks/{createdTask.Id}/complete", null);
-        completeResponse.StatusCode.Should().Be(HttpStatusCode.OK);
-
-        // When        
-        var reopenResponse = await _client.PostAsync($"/tasks/{createdTask.Id}/reopen", null);
-
-        // Then
-        reopenResponse.StatusCode.Should().Be(HttpStatusCode.OK);
-
-        var reopenedTask = await reopenResponse.Content.ReadFromJsonAsync<TaskItemResponse>();
-
-        reopenedTask.Should().NotBeNull();
-
-        reopenedTask.Id.Should().Be(createdTask.Id);
+        reopenedTask!.Id.Should().Be(createdTask.Id);
+        reopenedTask.Title.Should().Be(createdTask.Title);
+        reopenedTask.Notes.Should().Be(createdTask.Notes);
         reopenedTask.Status.Should().Be(Domain.TaskStatus.Active.ToString());
         reopenedTask.Priority.Should().Be(createdTask.Priority.ToString());
-    }
-
-    [Fact]
-    public async Task ReopenTask_WhenTaskExists_ClearsCompletedAt()
-    {
-        // Given
-        await _factory.ResetDatabaseAsync();
-
-        var createdTask = TaskItem.Create(
-            "Buy milk", 
-            "From the store",  
-            TaskPriority.Low,
-            new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero));        
-
-        await _factory.AddTaskAsync(createdTask);
-
-        var completeResponse = await _client.PostAsync($"/tasks/{createdTask.Id}/complete", null);
-        completeResponse.StatusCode.Should().Be(HttpStatusCode.OK); 
-
-        // When        
-        var reopenResponse = await _client.PostAsync($"/tasks/{createdTask.Id}/reopen", null);
-
-        // Then
-        reopenResponse.StatusCode.Should().Be(HttpStatusCode.OK);
-
-        var reopenedTask = await reopenResponse.Content.ReadFromJsonAsync<TaskItemResponse>();
-
-        reopenedTask.Should().NotBeNull();
-
-        reopenedTask.Id.Should().Be(createdTask.Id);
+        reopenedTask.CreatedAt.Should().Be(createdTask.CreatedAt);
         reopenedTask.CompletedAt.Should().BeNull();
-    }    
+        reopenedTask.UpdatedAt.Should().NotBe(originalUpdatedAt);
+        reopenedTask.UpdatedAt.Should().BeOnOrAfter(timeBeforeReopen);
+        reopenedTask.UpdatedAt.Should().BeOnOrBefore(timeAfterReopen);
+
+        var savedTask = await _factory.GetTaskByIdAsync(createdTask.Id);
+
+        savedTask.Should().NotBeNull();
+        savedTask!.Id.Should().Be(createdTask.Id);
+        savedTask.Title.Should().Be(createdTask.Title);
+        savedTask.Notes.Should().Be(createdTask.Notes);
+        savedTask.Status.Should().Be(Domain.TaskStatus.Active);
+        savedTask.Priority.Should().Be(createdTask.Priority);
+        savedTask.CreatedAt.Should().Be(createdTask.CreatedAt);
+        savedTask.CompletedAt.Should().BeNull();
+        savedTask.UpdatedAt.Should().Be(reopenedTask.UpdatedAt);
+    }
 
     [Fact]
     public async Task ReopenTask_WhenTaskIsNotCompleted_DoesNotChangeState()
@@ -131,16 +91,16 @@ public class ReopenTaskTests : IClassFixture<TaskTrackerWebApplicationFactory>
         await _factory.ResetDatabaseAsync();
 
         var createdTask = TaskItem.Create(
-            "Buy milk", 
-            "From the store", 
-            TaskPriority.Low, 
-            new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero));        
+            "Buy milk",
+            "From the store",
+            TaskPriority.Low,
+            new DateTimeOffset(2026, 3, 25, 7, 0, 0, TimeSpan.Zero));
 
         await _factory.AddTaskAsync(createdTask);
 
         var originalUpdatedAt = createdTask.UpdatedAt;
 
-        // When        
+        // When
         var reopenResponse = await _client.PostAsync($"/tasks/{createdTask.Id}/reopen", null);
 
         // Then
@@ -149,18 +109,19 @@ public class ReopenTaskTests : IClassFixture<TaskTrackerWebApplicationFactory>
         var reopenedTask = await reopenResponse.Content.ReadFromJsonAsync<TaskItemResponse>();
 
         reopenedTask.Should().NotBeNull();
-
-        reopenedTask.Id.Should().Be(createdTask.Id);
+        reopenedTask!.Id.Should().Be(createdTask.Id);
+        reopenedTask.Title.Should().Be(createdTask.Title);
+        reopenedTask.Notes.Should().Be(createdTask.Notes);
         reopenedTask.Status.Should().Be(createdTask.Status.ToString());
         reopenedTask.Priority.Should().Be(createdTask.Priority.ToString());
+        reopenedTask.CreatedAt.Should().Be(createdTask.CreatedAt);
         reopenedTask.CompletedAt.Should().Be(createdTask.CompletedAt);
         reopenedTask.UpdatedAt.Should().Be(originalUpdatedAt);
 
         var savedTask = await _factory.GetTaskByIdAsync(createdTask.Id);
 
         savedTask.Should().NotBeNull();
-
-        savedTask.Id.Should().Be(createdTask.Id);
+        savedTask!.Id.Should().Be(createdTask.Id);
         savedTask.Title.Should().Be(createdTask.Title);
         savedTask.Notes.Should().Be(createdTask.Notes);
         savedTask.Status.Should().Be(createdTask.Status);
@@ -169,5 +130,4 @@ public class ReopenTaskTests : IClassFixture<TaskTrackerWebApplicationFactory>
         savedTask.CompletedAt.Should().Be(createdTask.CompletedAt);
         savedTask.UpdatedAt.Should().Be(originalUpdatedAt);
     }
-    
-} 
+}

@@ -1,6 +1,5 @@
 using System.Net;
 using System.Net.Http.Json;
-using Microsoft.AspNetCore.Http;
 using TaskTracker.Api.Dtos;
 using TaskTracker.Domain;
 
@@ -65,9 +64,9 @@ public class UpdateTaskDetailsTests : IClassFixture<TaskTrackerWebApplicationFac
     }
 
     [Theory]
-    [InlineData(null)] // null
-    [InlineData("")] // empty
-    [InlineData(" ")] // whitespace
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData(" ")]
     public async Task UpdateTaskDetails_WhenTitleIsNullEmptyOrWhitespace_ReturnsBadRequest(string? title)
     {
         // Given
@@ -185,7 +184,7 @@ public class UpdateTaskDetailsTests : IClassFixture<TaskTrackerWebApplicationFac
     }
 
     [Fact]
-    public async Task UpdateTaskDetails_WhenTaskExists_ReturnsOkWithUpdatedTask()
+    public async Task UpdateTaskDetails_WhenTaskExists_ReturnsOkAndPersistsUpdatedTask()
     {
         // Given
         await _factory.ResetDatabaseAsync();
@@ -198,14 +197,20 @@ public class UpdateTaskDetailsTests : IClassFixture<TaskTrackerWebApplicationFac
 
         await _factory.AddTaskAsync(createdTask);
 
+        var originalUpdatedAt = createdTask.UpdatedAt;
+
         var updateRequest = new TaskItemUpdateDetailsRequest
         {
             Title = "Updated title",
             Notes = "Updated notes"
         };
 
+        var timeBeforeUpdate = DateTimeOffset.UtcNow;
+
         // When
         var updateResponse = await _client.PutAsJsonAsync($"/tasks/{createdTask.Id}", updateRequest);
+
+        var timeAfterUpdate = DateTimeOffset.UtcNow;
 
         // Then
         updateResponse.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -213,15 +218,28 @@ public class UpdateTaskDetailsTests : IClassFixture<TaskTrackerWebApplicationFac
         var updatedTask = await updateResponse.Content.ReadFromJsonAsync<TaskItemResponse>();
 
         updatedTask.Should().NotBeNull();
-
-        updatedTask.Id.Should().Be(createdTask.Id);
+        updatedTask!.Id.Should().Be(createdTask.Id);
         updatedTask.Title.Should().Be(updateRequest.Title);
         updatedTask.Notes.Should().Be(updateRequest.Notes);
         updatedTask.Status.Should().Be(createdTask.Status.ToString());
         updatedTask.Priority.Should().Be(createdTask.Priority.ToString());
         updatedTask.CreatedAt.Should().Be(createdTask.CreatedAt);
         updatedTask.CompletedAt.Should().BeNull();
-        updatedTask.UpdatedAt.Should().NotBeNull();
+        updatedTask.UpdatedAt.Should().NotBe(originalUpdatedAt);
+        updatedTask.UpdatedAt.Should().BeOnOrAfter(timeBeforeUpdate);
+        updatedTask.UpdatedAt.Should().BeOnOrBefore(timeAfterUpdate);
+
+        var savedTask = await _factory.GetTaskByIdAsync(createdTask.Id);
+
+        savedTask.Should().NotBeNull();
+        savedTask!.Id.Should().Be(createdTask.Id);
+        savedTask.Title.Should().Be(updateRequest.Title);
+        savedTask.Notes.Should().Be(updateRequest.Notes);
+        savedTask.Status.Should().Be(createdTask.Status);
+        savedTask.Priority.Should().Be(createdTask.Priority);
+        savedTask.CreatedAt.Should().Be(createdTask.CreatedAt);
+        savedTask.CompletedAt.Should().BeNull();
+        savedTask.UpdatedAt.Should().Be(updatedTask.UpdatedAt);
     }
 
     [Fact]
@@ -253,11 +271,15 @@ public class UpdateTaskDetailsTests : IClassFixture<TaskTrackerWebApplicationFac
         var updatedTask = await updateResponse.Content.ReadFromJsonAsync<TaskItemResponse>();
 
         updatedTask.Should().NotBeNull();
-
-        updatedTask.Id.Should().Be(createdTask.Id);
+        updatedTask!.Id.Should().Be(createdTask.Id);
         updatedTask.Title.Should().Be(updateRequest.Title);
         updatedTask.Notes.Should().BeNull();
         updatedTask.UpdatedAt.Should().NotBeNull();
+
+        var savedTask = await _factory.GetTaskByIdAsync(createdTask.Id);
+
+        savedTask.Should().NotBeNull();
+        savedTask!.Notes.Should().BeNull();
     }
 
     [Fact]
@@ -291,8 +313,7 @@ public class UpdateTaskDetailsTests : IClassFixture<TaskTrackerWebApplicationFac
         var updatedTask = await updateResponse.Content.ReadFromJsonAsync<TaskItemResponse>();
 
         updatedTask.Should().NotBeNull();
-
-        updatedTask.Id.Should().Be(createdTask.Id);
+        updatedTask!.Id.Should().Be(createdTask.Id);
         updatedTask.Title.Should().Be(createdTask.Title);
         updatedTask.Notes.Should().Be(createdTask.Notes);
         updatedTask.Status.Should().Be(createdTask.Status.ToString());
@@ -300,6 +321,10 @@ public class UpdateTaskDetailsTests : IClassFixture<TaskTrackerWebApplicationFac
         updatedTask.CreatedAt.Should().Be(createdTask.CreatedAt);
         updatedTask.CompletedAt.Should().Be(createdTask.CompletedAt);
         updatedTask.UpdatedAt.Should().Be(originalUpdatedAt);
-    }
 
+        var savedTask = await _factory.GetTaskByIdAsync(createdTask.Id);
+
+        savedTask.Should().NotBeNull();
+        savedTask!.UpdatedAt.Should().Be(originalUpdatedAt);
+    }
 }
