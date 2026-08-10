@@ -3,9 +3,13 @@ import { useState } from "react";
 const TITLE_MAX_LENGTH = 100;
 const NOTES_MAX_LENGTH = 500;
 
+const TASK_PRIORITIES = ["Low", "Medium", "High", "Critical"];
+const DEFAULT_PRIORITY = "Medium";
+
 function TaskForm({ onCreateTask }) {
   const [title, setTitle] = useState("");
   const [notes, setNotes] = useState("");
+  const [priority, setPriority] = useState(DEFAULT_PRIORITY);
   const [showTitleRequired, setShowTitleRequired] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -43,10 +47,12 @@ function TaskForm({ onCreateTask }) {
       await onCreateTask({
         title: trimmedTitle,
         notes: trimmedNotes || null,
+        priority,
       });
 
       setTitle("");
       setNotes("");
+      setPriority(DEFAULT_PRIORITY);
       setShowTitleRequired(false);
     } catch {
       // App shows the error message.
@@ -84,6 +90,19 @@ function TaskForm({ onCreateTask }) {
           rows="3"
         />
         {notesMessage && <p className="mt-1 text-sm text-red-700">{notesMessage}</p>}
+      </div>
+
+      <div>
+        <label htmlFor="priority" className="mb-1 block font-medium">
+          Priority
+        </label>
+        <select id="priority" value={priority} onChange={(event) => setPriority(event.target.value)} className="w-full border px-2 py-1">
+          {TASK_PRIORITIES.map((priorityOption) => (
+            <option key={priorityOption} value={priorityOption}>
+              {priorityOption}
+            </option>
+          ))}
+        </select>
       </div>
 
       <button

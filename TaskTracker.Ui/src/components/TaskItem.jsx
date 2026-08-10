@@ -1,5 +1,7 @@
 import { useState } from "react";
 
+const TASK_PRIORITIES = ["Low", "Medium", "High", "Critical"];
+
 const TITLE_MAX_LENGTH = 100;
 const NOTES_MAX_LENGTH = 500;
 
@@ -11,7 +13,7 @@ function formatDate(value) {
   return new Date(value).toLocaleString();
 }
 
-function TaskItem({ task, onCompleteTask, onReopenTask, onUpdateTask, onDeleteTask }) {
+function TaskItem({ task, onCompleteTask, onReopenTask, onUpdateTask, onChangePriority, onDeleteTask }) {
   const [isEditing, setIsEditing] = useState(false);
   const [title, setTitle] = useState(task.title);
   const [notes, setNotes] = useState(task.notes || "");
@@ -152,10 +154,14 @@ function TaskItem({ task, onCompleteTask, onReopenTask, onUpdateTask, onDeleteTa
         </>
       )}
 
-      <dl className="mt-3 space-y-1 text-sm">
+      <dl className="mt-3 border-t pt-3 space-y-1 text-sm">
         <div>
           <dt className="inline font-medium">Status: </dt>
           <dd className="inline">{task.status}</dd>
+        </div>
+        <div>
+          <dt className="inline font-medium">Priority: </dt>
+          <dd className="inline">{task.priority}</dd>
         </div>
         <div>
           <dt className="inline font-medium">Created: </dt>
@@ -176,7 +182,27 @@ function TaskItem({ task, onCompleteTask, onReopenTask, onUpdateTask, onDeleteTa
       </dl>
 
       {!isEditing && (
-        <div className="mt-3 flex gap-2">
+        <div className="mt-3 border-t pt-3">
+          <label htmlFor={`priority-${task.id}`} className="mb-1 block text-sm font-medium">
+            Change priority
+          </label>
+          <select
+            id={`priority-${task.id}`}
+            value={task.priority}
+            onChange={(event) => onChangePriority(task.id, event.target.value)}
+            className="border bg-white px-2 py-1 text-sm text-black [color-scheme:light]"
+          >
+            {TASK_PRIORITIES.map((priorityOption) => (
+              <option key={priorityOption} value={priorityOption} className="bg-white text-black">
+                {priorityOption}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+
+      {!isEditing && (
+        <div className="mt-3 border-t pt-3 flex gap-2">
           {task.status === "Active" && (
             <button
               type="button"

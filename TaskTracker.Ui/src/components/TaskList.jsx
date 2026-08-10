@@ -1,13 +1,16 @@
 import TaskItem from "./TaskItem.jsx";
 
-function TaskList({ tasks, onCompleteTask, onReopenTask, onUpdateTask, onDeleteTask }) {
+function TaskList({ tasks, onCompleteTask, onReopenTask, onUpdateTask, onChangePriority, onDeleteTask }) {
   if (tasks.length === 0) {
     return <p className="mt-6">No tasks yet.</p>;
   }
 
   return (
     <section className="mt-6">
-      <h2 className="mb-3 text-xl font-semibold">Tasks</h2>
+      <h2 className="mb-3 text-xl font-semibold">
+        Tasks
+      </h2>
+
       <ul className="space-y-3">
         {tasks.map((task) => (
           <TaskItem
@@ -16,6 +19,7 @@ function TaskList({ tasks, onCompleteTask, onReopenTask, onUpdateTask, onDeleteT
             onCompleteTask={onCompleteTask}
             onReopenTask={onReopenTask}
             onUpdateTask={onUpdateTask}
+            onChangePriority={onChangePriority}
             onDeleteTask={onDeleteTask}
           />
         ))}

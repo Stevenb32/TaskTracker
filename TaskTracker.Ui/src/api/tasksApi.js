@@ -37,6 +37,18 @@ export function updateTaskDetails(id, task) {
   });
 }
 
+export function changeTaskPriority(id, priority) {
+  return sendRequest(`/tasks/${id}/priority`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      priority: priority,
+    }),
+  });
+}
+
 export function completeTask(id) {
   return sendRequest(`/tasks/${id}/complete`, {
     method: 'POST',
