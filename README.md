@@ -55,8 +55,8 @@ This project uses a layered testing approach:
 
 ## Current Features
 
-- Create tasks with a title and optional notes
-- View, edit, complete, reopen, and delete tasks
+- Create tasks with a title and optional notes, and priority
+- View, edit, change priority, complete, reopen, and delete tasks
 - Validate core task rules in the domain layer
 - Store local, Dev, E2E, and demo data in PostgreSQL
 - Reset and seed the public demo database
@@ -103,5 +103,3 @@ More detailed setup and workflow notes are available in the `docs` folder:
 ## Project Status
 
 The main task workflow, API, frontend, unit tests, integration tests, E2E test, CI workflow, Docker demo setup, public routing, and demo database reset process are in place.
-
-Planned improvements include branch protection practice, additional Playwright coverage, Postman/Newman API tests, filtering, and a portfolio project page.
