@@ -7,6 +7,7 @@ function App() {
   const [tasks, setTasks] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [prioritySavingTaskId, setPrioritySavingTaskId] = useState(null);
 
   async function loadTasks() {
     setIsLoading(true);
@@ -75,6 +76,7 @@ function App() {
 
   async function handleChangePriority(id, priority) {
     setError("");
+    setPrioritySavingTaskId(id);
 
     try {
       const updatedTask = await changeTaskPriority(id, priority);
@@ -82,6 +84,8 @@ function App() {
       setTasks((currentTasks) => currentTasks.map((currentTask) => (currentTask.id === updatedTask.id ? updatedTask : currentTask)));
     } catch {
       setError("Could not update the task priority.");
+    } finally {
+      setPrioritySavingTaskId(null);
     }
   }
 
@@ -112,6 +116,7 @@ function App() {
           onReopenTask={handleReopenTask}
           onUpdateTask={handleUpdateTask}
           onChangePriority={handleChangePriority}
+          prioritySavingTaskId={prioritySavingTaskId}
           onDeleteTask={handleDeleteTask}
         />
       )}

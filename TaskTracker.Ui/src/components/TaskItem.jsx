@@ -13,7 +13,7 @@ function formatDate(value) {
   return new Date(value).toLocaleString();
 }
 
-function TaskItem({ task, onCompleteTask, onReopenTask, onUpdateTask, onChangePriority, onDeleteTask }) {
+function TaskItem({ task, onCompleteTask, onReopenTask, onUpdateTask, onChangePriority, isPrioritySaving, onDeleteTask }) {
   const [isEditing, setIsEditing] = useState(false);
   const [title, setTitle] = useState(task.title);
   const [notes, setNotes] = useState(task.notes || "");
@@ -190,7 +190,8 @@ function TaskItem({ task, onCompleteTask, onReopenTask, onUpdateTask, onChangePr
             id={`priority-${task.id}`}
             value={task.priority}
             onChange={(event) => onChangePriority(task.id, event.target.value)}
-            className="border bg-white px-2 py-1 text-sm text-black [color-scheme:light]"
+            disabled={isPrioritySaving}
+            className="border bg-white px-2 py-1 text-sm text-black [color-scheme:light] disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-500"
           >
             {TASK_PRIORITIES.map((priorityOption) => (
               <option key={priorityOption} value={priorityOption} className="bg-white text-black">
@@ -198,6 +199,7 @@ function TaskItem({ task, onCompleteTask, onReopenTask, onUpdateTask, onChangePr
               </option>
             ))}
           </select>
+          {isPrioritySaving && <span className="ml-2 text-sm text-gray-600">Saving...</span>}
         </div>
       )}
 

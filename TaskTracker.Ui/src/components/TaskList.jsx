@@ -1,6 +1,6 @@
 import TaskItem from "./TaskItem.jsx";
 
-function TaskList({ tasks, onCompleteTask, onReopenTask, onUpdateTask, onChangePriority, onDeleteTask }) {
+function TaskList({ tasks, onCompleteTask, onReopenTask, onUpdateTask, onChangePriority, prioritySavingTaskId, onDeleteTask }) {
   if (tasks.length === 0) {
     return <p className="mt-6">No tasks yet.</p>;
   }
@@ -20,6 +20,7 @@ function TaskList({ tasks, onCompleteTask, onReopenTask, onUpdateTask, onChangeP
             onReopenTask={onReopenTask}
             onUpdateTask={onUpdateTask}
             onChangePriority={onChangePriority}
+            isPrioritySaving={prioritySavingTaskId === task.id}
             onDeleteTask={onDeleteTask}
           />
         ))}
