@@ -1,32 +1,22 @@
 # Setup
 
-This guide walks through cloning TaskTracker, installing the required tools and project dependencies, then running the local development and E2E environments.
+This guide covers local setup for TaskTracker.
 
 ## Prerequisites
-
-Install these before setting up the repo:
 
 - Git
 - .NET SDK 10
 - Node.js and npm, preferably Node 22 or newer
 - Docker Desktop or Docker Engine with Docker Compose
-- Playwright browsers, only needed for E2E tests
+- EF Core CLI (`dotnet-ef`) for database migrations
+- Playwright browsers for E2E tests
 
-Optional but recommended:
-
-- A terminal that can run PowerShell commands
-- An editor such as Visual Studio Code or Visual Studio
-
-## Clone The Repo
+## Clone And Install
 
 ```bash
 git clone <repo-url>
 cd TaskTracker
 ```
-
-## Install Project Dependencies
-
-Run these commands from the repo root unless a step says otherwise.
 
 Restore the .NET solution:
 
@@ -34,7 +24,7 @@ Restore the .NET solution:
 dotnet restore TaskTracker.slnx
 ```
 
-Install the frontend dependencies:
+Install frontend dependencies:
 
 ```bash
 cd TaskTracker.Ui
@@ -42,7 +32,7 @@ npm install
 cd ..
 ```
 
-Install the E2E test dependencies:
+Install E2E dependencies and browsers:
 
 ```bash
 cd TaskTracker.E2E.Tests
@@ -51,13 +41,13 @@ npx playwright install
 cd ..
 ```
 
-Install the EF Core CLI if it is not already installed:
+Install the EF Core CLI if needed:
 
 ```bash
 dotnet tool install --global dotnet-ef
 ```
 
-If `dotnet-ef` is already installed and you want to update it:
+If it is already installed and you want to update it:
 
 ```bash
 dotnet tool update --global dotnet-ef
@@ -65,51 +55,37 @@ dotnet tool update --global dotnet-ef
 
 ## Development Environment
 
-The development environment uses:
+The development environment uses PostgreSQL on `localhost:5432`, the API at `http://localhost:5127`, Swagger at `http://localhost:5127/swagger`, and the UI at `http://localhost:5173`.
 
-- PostgreSQL on `localhost:5432`
-- API at `http://localhost:5127`
-- Swagger at `http://localhost:5127/swagger`
-- UI at `http://localhost:5173`
-- API config from `TaskTracker.Api/appsettings.Development.json`
-
-### Start The Development Database
-
-Open a terminal at the repo root and run:
+Start the development database:
 
 ```bash
 docker compose -f docker-compose.dev.yml up -d
 ```
 
-### Apply Development Database Migrations
-
-PowerShell:
+Apply migrations:
 
 ```powershell
 $env:ASPNETCORE_ENVIRONMENT="Development"
 dotnet ef database update --project TaskTracker.Api --startup-project TaskTracker.Api
 ```
 
-### Run The Development API
+Run the API:
 
 ```bash
 dotnet run --project TaskTracker.Api --launch-profile http
 ```
 
-### Run The Development UI
-
-Open a second terminal at the repo root and run:
+Run the UI from a second terminal:
 
 ```bash
 cd TaskTracker.Ui
 npm run dev
 ```
 
-Then open `http://localhost:5173`.
+Open `http://localhost:5173`. The Vite dev server proxies `/api` requests to the local API and strips the `/api` prefix.
 
-The Vite dev server proxies `/api` requests to the local API.
-
-### Stop The Development Database
+Stop the development database:
 
 ```bash
 docker compose -f docker-compose.dev.yml down
@@ -117,43 +93,33 @@ docker compose -f docker-compose.dev.yml down
 
 ## E2E Environment
 
-The E2E environment uses:
+The E2E environment uses a separate PostgreSQL database on `localhost:5433` and API configuration from `TaskTracker.Api/appsettings.E2E.json`.
 
-- PostgreSQL on `localhost:5433`
-- API at `http://localhost:5127`
-- UI at `http://localhost:5173`
-- API config from `TaskTracker.Api/appsettings.E2E.json`
-
-The Playwright config starts the API and UI automatically before the tests run. You only need to start the E2E database and apply migrations first.
-
-### Start The E2E Database
-
-Open a terminal at the repo root and run:
+Start the E2E database:
 
 ```bash
 docker compose -f docker-compose.e2e.yml up -d
 ```
 
-### Apply E2E Database Migrations
-
-PowerShell:
+Apply migrations:
 
 ```powershell
 $env:ASPNETCORE_ENVIRONMENT="E2E"
 dotnet ef database update --project TaskTracker.Api --startup-project TaskTracker.Api
 ```
 
-### Stop The E2E Database
+The Playwright config starts the API and UI automatically before tests run. When the API runs with `ASPNETCORE_ENVIRONMENT=E2E`, it exposes `POST /testing/reset-db` for test isolation.
+
+Stop the E2E database:
 
 ```bash
 docker compose -f docker-compose.e2e.yml down
 ```
 
-## Local Configuration Notes
+## Configuration Notes
 
-- Development database settings live in `TaskTracker.Api/appsettings.Development.json`.
-- E2E database settings live in `TaskTracker.Api/appsettings.E2E.json`.
-- The E2E API exposes `POST /testing/reset-db` so Playwright can reset data between tests.
-- A local `.env` file is only needed for the production/demo Docker Compose setup.
-- Use `.env.example` as the template for production/demo values, and do not commit real secrets.
-- For test commands and CI details, see [Testing](testing.md).
+- Development connection settings live in `TaskTracker.Api/appsettings.Development.json`.
+- E2E connection settings live in `TaskTracker.Api/appsettings.E2E.json`.
+- Swagger/OpenAPI is enabled for `Development` and `E2E`.
+- A local `.env` file is only needed for the production/demo Docker Compose stack.
+- Use `.env.example` as the production/demo template and do not commit real secrets.

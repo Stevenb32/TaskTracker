@@ -1,14 +1,11 @@
 -- view all tasks
-SELECT
-    "Id",
-    "Title",
-    "Notes",
-    "Status",
-    "CreatedAt",
-    "CompletedAt",
-    "UpdatedAt"
+SELECT *
 FROM public."Tasks"
 LIMIT 1000;
+
+SELECT COUNT(*)
+FROM "Tasks"
+WHERE "Priority" IS NULL;
 
 -- create  task
 INSERT INTO public."Tasks"
@@ -53,6 +50,31 @@ VALUES
     NULL,
     NOW()
 );
+
+-- create completed task
+INSERT INTO public."Tasks"
+(
+    "Id",
+    "Title",
+    "Notes",
+    "Status",
+    "CreatedAt",
+    "CompletedAt",
+    "UpdatedAt"
+)
+VALUES
+(
+    gen_random_uuid(),
+    'Test task from SQL',
+    'Completed directly in Postgres',
+    1,
+    NOW(),
+    NOW(),
+    NOW()
+);
+
+
+
 
 -- select by id
 SELECT *

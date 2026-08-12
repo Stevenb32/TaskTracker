@@ -16,16 +16,22 @@ test.describe("Task create validation", () => {
     await expect(form.getByText("Title is required")).toBeVisible();
   });
 
-  test("shows title limit message when title reaches 100 characters", async ({ page }) => {
+  test("shows title limit message and prevents title from exceeding 100 characters", async ({ page }) => {
     const titleWith100Chars = "a".repeat(100);
 
     await page.goto("/");
 
     const form = page.locator("form");
+    const titleInput = form.getByRole("textbox", { name: "Title" });
 
-    await form.getByRole("textbox", { name: "Title" }).fill(titleWith100Chars);
+    await titleInput.fill(titleWith100Chars);
 
+    await expect(titleInput).toHaveValue(titleWith100Chars);
     await expect(form.getByText("Title can only be 100 characters")).toBeVisible();
+
+    await titleInput.press("b");
+
+    await expect(titleInput).toHaveValue(titleWith100Chars);
   });
 
   test("shows notes limit message when notes reaches 500 characters", async ({ page }) => {
@@ -34,10 +40,16 @@ test.describe("Task create validation", () => {
     await page.goto("/");
 
     const form = page.locator("form");
+    const notesInput = form.getByRole("textbox", { name: "Notes" });
 
-    await form.getByRole("textbox", { name: "Notes" }).fill(notesWith500Chars);
+    await notesInput.fill(notesWith500Chars);
 
+    await expect(notesInput).toHaveValue(notesWith500Chars);
     await expect(form.getByText("Notes can only be 500 characters")).toBeVisible();
+
+    await notesInput.press("b");
+
+    await expect(notesInput).toHaveValue(notesWith500Chars);
   });
 });
 
@@ -47,10 +59,12 @@ test.describe("Task edit validation", () => {
 
     const originalTitle = `Buy milk ${uniqueId}`;
     const originalNotes = `From the store ${uniqueId}`;
+    const originalPriority = "Low";
 
     const createdTask = await createTaskViaApi(request, {
       title: originalTitle,
       notes: originalNotes,
+      priority: originalPriority,
     });
 
     await page.goto("/");
@@ -66,16 +80,18 @@ test.describe("Task edit validation", () => {
     await expect(taskItem.getByText("Title is required")).toBeVisible();
   });
 
-  test("shows message when title reaches max length while editing", async ({ page, request }) => {
+  test("shows title limit message and prevents title from exceeding 100 characters while editing", async ({ page, request }) => {
     const uniqueId = Date.now();
     const titleWith100Chars = "a".repeat(100);
 
     const originalTitle = `Buy milk ${uniqueId}`;
     const originalNotes = `From the store ${uniqueId}`;
+    const originalPriority = "Low";
 
     const createdTask = await createTaskViaApi(request, {
       title: originalTitle,
       notes: originalNotes,
+      priority: originalPriority,
     });
 
     await page.goto("/");
@@ -84,9 +100,16 @@ test.describe("Task edit validation", () => {
 
     await taskItem.getByRole("button", { name: "Edit" }).click();
 
-    await taskItem.getByRole("textbox", { name: "Title" }).fill(titleWith100Chars);
+    const titleInput = taskItem.getByRole("textbox", { name: "Title" });
 
+    await titleInput.fill(titleWith100Chars);
+
+    await expect(titleInput).toHaveValue(titleWith100Chars);
     await expect(taskItem.getByText("Title can only be 100 characters")).toBeVisible();
+
+    await titleInput.press("b");
+
+    await expect(titleInput).toHaveValue(titleWith100Chars);
   });
 
   test("shows message when notes reaches max length while editing", async ({ page, request }) => {
@@ -95,10 +118,12 @@ test.describe("Task edit validation", () => {
 
     const originalTitle = `Buy milk ${uniqueId}`;
     const originalNotes = `From the store ${uniqueId}`;
+    const originalPriority = "Low";
 
     const createdTask = await createTaskViaApi(request, {
       title: originalTitle,
       notes: originalNotes,
+      priority: originalPriority,
     });
 
     await page.goto("/");
@@ -107,8 +132,15 @@ test.describe("Task edit validation", () => {
 
     await taskItem.getByRole("button", { name: "Edit" }).click();
 
-    await taskItem.getByRole("textbox", { name: "Notes" }).fill(notesWith500Chars);
+    const notesInput = taskItem.getByRole("textbox", { name: "Notes" });
 
+    await notesInput.fill(notesWith500Chars);
+
+    await expect(notesInput).toHaveValue(notesWith500Chars);
     await expect(taskItem.getByText("Notes can only be 500 characters")).toBeVisible();
+
+    await notesInput.press("b");
+
+    await expect(notesInput).toHaveValue(notesWith500Chars);
   });
 });

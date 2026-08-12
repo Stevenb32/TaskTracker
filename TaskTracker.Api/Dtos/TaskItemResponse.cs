@@ -6,6 +6,7 @@ public class TaskItemResponse
     public string Title { get; set; } = string.Empty;
     public string? Notes { get; set; }
     public string Status { get; set; } = string.Empty;
+    public string Priority { get; set; } = string.Empty;
     public DateTimeOffset CreatedAt { get; set; }
     public DateTimeOffset? CompletedAt { get; set; }
     public DateTimeOffset? UpdatedAt { get; set; }

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { completeTask, createTask, deleteTask, getTasks, reopenTask, updateTaskDetails } from "./api/tasksApi.js";
+import { getTasks, createTask, updateTaskDetails, changeTaskPriority, completeTask, reopenTask, deleteTask } from "./api/tasksApi.js";
 import TaskForm from "./components/TaskForm.jsx";
 import TaskList from "./components/TaskList.jsx";
 
@@ -7,6 +7,7 @@ function App() {
   const [tasks, setTasks] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [prioritySavingTaskId, setPrioritySavingTaskId] = useState(null);
 
   async function loadTasks() {
     setIsLoading(true);
@@ -73,6 +74,21 @@ function App() {
     }
   }
 
+  async function handleChangePriority(id, priority) {
+    setError("");
+    setPrioritySavingTaskId(id);
+
+    try {
+      const updatedTask = await changeTaskPriority(id, priority);
+
+      setTasks((currentTasks) => currentTasks.map((currentTask) => (currentTask.id === updatedTask.id ? updatedTask : currentTask)));
+    } catch {
+      setError("Could not update the task priority.");
+    } finally {
+      setPrioritySavingTaskId(null);
+    }
+  }
+
   async function handleDeleteTask(id) {
     setError("");
 
@@ -99,6 +115,8 @@ function App() {
           onCompleteTask={handleCompleteTask}
           onReopenTask={handleReopenTask}
           onUpdateTask={handleUpdateTask}
+          onChangePriority={handleChangePriority}
+          prioritySavingTaskId={prioritySavingTaskId}
           onDeleteTask={handleDeleteTask}
         />
       )}

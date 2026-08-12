@@ -31,6 +31,12 @@ public static class TaskItemEndpoints
             .ProducesValidationProblem(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status404NotFound);
 
+        group.MapPatch("/{id:guid}/priority", ChangePriority)
+            .WithName("ChangePriority")
+            .Produces<TaskItemResponse>(StatusCodes.Status200OK)
+            .ProducesValidationProblem(StatusCodes.Status400BadRequest)
+            .Produces(StatusCodes.Status404NotFound);
+
         group.MapPost("/{id:guid}/complete", CompleteTask)
             .WithName("CompleteTask")
             .Produces<TaskItemResponse>(StatusCodes.Status200OK)
@@ -46,20 +52,17 @@ public static class TaskItemEndpoints
             .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status404NotFound);
 
-        
+
 
         return app;
-    }   
-    
+    }
+
     // endpoint handlers    
     private static async Task<IResult> CreateTask(TaskItemCreateRequest request, TaskTrackerDbContext db)
     {
-        var taskItem = TaskItem.Create(
-            request.Title,
-            request.Notes,
-            DateTimeOffset.UtcNow);
+        var taskItem = TaskItem.Create(request.Title, request.Notes, request.Priority, DateTimeOffset.UtcNow);
 
-        db.Tasks.Add(taskItem);        
+        db.Tasks.Add(taskItem);
         await db.SaveChangesAsync();
 
         var response = ToResponse(taskItem);
@@ -74,9 +77,9 @@ public static class TaskItemEndpoints
             .OrderByDescending(task => task.CreatedAt)
             .ToListAsync();
 
-            var response = taskItems
-                .Select(ToResponse)
-                .ToList();
+        var response = taskItems
+            .Select(ToResponse)
+            .ToList();
 
         return Results.Ok(response);
     }
@@ -97,18 +100,30 @@ public static class TaskItemEndpoints
 
     private static async Task<IResult> UpdateTaskDetails(Guid id, TaskItemUpdateDetailsRequest request, TaskTrackerDbContext db)
     {
-        var taskItem = await db.Tasks
-            .FirstOrDefaultAsync(t => t.Id == id);
+        var taskItem = await db.Tasks.FirstOrDefaultAsync(t => t.Id == id);
 
         if (taskItem is null)
         {
             return Results.NotFound();
         }
 
-        taskItem.UpdateDetails(
-            request.Title,
-            request.Notes,
-            DateTimeOffset.UtcNow);
+        taskItem.UpdateDetails(request.Title, request.Notes, DateTimeOffset.UtcNow);
+
+        await db.SaveChangesAsync();
+
+        return Results.Ok(ToResponse(taskItem));
+    }
+
+    private static async Task<IResult> ChangePriority(Guid id, TaskItemChangePriorityRequest request, TaskTrackerDbContext db)
+    {
+        var taskItem = await db.Tasks.FindAsync(id);
+
+        if (taskItem is null)
+        {
+            return Results.NotFound();
+        }
+
+        taskItem.ChangePriority(request.Priority!.Value, DateTimeOffset.UtcNow);
 
         await db.SaveChangesAsync();
 
@@ -157,7 +172,7 @@ public static class TaskItemEndpoints
             return Results.NotFound();
         }
 
-        db.Tasks.Remove(taskItem);        
+        db.Tasks.Remove(taskItem);
         await db.SaveChangesAsync();
 
         return Results.NoContent();
@@ -172,6 +187,7 @@ public static class TaskItemEndpoints
             Title = taskItem.Title,
             Notes = taskItem.Notes,
             Status = taskItem.Status.ToString(),
+            Priority = taskItem.Priority.ToString(),
             CreatedAt = taskItem.CreatedAt,
             CompletedAt = taskItem.CompletedAt,
             UpdatedAt = taskItem.UpdatedAt

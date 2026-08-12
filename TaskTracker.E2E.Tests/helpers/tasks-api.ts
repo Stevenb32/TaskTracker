@@ -2,9 +2,12 @@ import { expect, APIRequestContext } from "@playwright/test";
 
 const apiBaseUrl = process.env.API_BASE_URL ?? "http://localhost:5127";
 
+export type TaskPriority = "Low" | "Medium" | "High" | "Critical";
+
 export type CreateTaskRequest = {
   title: string;
-  notes?: string;
+  notes?: string | null;
+  priority?: TaskPriority;
 };
 
 export type TaskResponse = {
@@ -12,6 +15,7 @@ export type TaskResponse = {
   title: string;
   notes: string | null;
   status: string;
+  priority: TaskPriority;
   createdAt: string;
   completedAt: string | null;
   updatedAt: string | null;
@@ -29,6 +33,16 @@ export async function createTaskViaApi(request: APIRequestContext, task: CreateT
   });
 
   expect(response.status()).toBe(201);
+
+  return await response.json();
+}
+
+export async function changeTaskPriorityViaApi(request: APIRequestContext, taskId: string, priority: TaskPriority): Promise<TaskResponse> {
+  const response = await request.patch(`${apiBaseUrl}/tasks/${taskId}/priority`, {
+    data: { priority },
+  });
+
+  expect(response.status()).toBe(200);
 
   return await response.json();
 }

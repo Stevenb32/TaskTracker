@@ -1,13 +1,13 @@
 using System.Net;
 using Microsoft.AspNetCore.Mvc.Testing;
 
-namespace HealthEndpointTests .Api.Tests;
+namespace HealthEndpointTests.Api.Tests;
 
-public class HealthEndpointTests  : IClassFixture<WebApplicationFactory<Program>>
+public class HealthEndpointTests : IClassFixture<WebApplicationFactory<Program>>
 {
     private readonly HttpClient _client;
 
-    public HealthEndpointTests (WebApplicationFactory<Program> factory)
+    public HealthEndpointTests(WebApplicationFactory<Program> factory)
     {
         _client = factory.CreateClient();
     }

@@ -1,8 +1,8 @@
 using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.OpenApi;
 using TaskTracker.Api.Data;
 using TaskTracker.Api.Endpoints;
-
+using TaskTracker.Api.ErrorHandling;
+using TaskTracker.Api.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,19 +11,19 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddOpenApi();
 builder.Services.AddSwaggerGen();
 
-// in memory Db 
-// builder.Services.AddDbContext<TaskTrackerDbContext>(options => 
-//     options.UseInMemoryDatabase("TaskTrackerDb"));
-
+builder.Services.ConfigureHttpJsonOptions(options =>
+{
+    TaskTrackerJsonSerializerOptions.Configure(options.SerializerOptions);
+});
 
 var connectionString = builder.Configuration.GetConnectionString("TaskTrackerDb");
 
-builder.Services.AddDbContext<TaskTrackerDbContext>(options =>
-    options.UseNpgsql(connectionString));
+builder.Services.AddDbContext<TaskTrackerDbContext>(options => options.UseNpgsql(connectionString));
 
-
-builder.Services.AddProblemDetails();
 builder.Services.AddValidation();
+builder.Services.AddExceptionHandler<BadRequestExceptionHandler>();
+builder.Services.AddExceptionHandler<DomainValidationExceptionHandler>();
+builder.Services.AddProblemDetails();
 
 var app = builder.Build();
 

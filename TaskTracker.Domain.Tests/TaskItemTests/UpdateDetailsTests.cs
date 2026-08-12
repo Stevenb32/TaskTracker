@@ -1,22 +1,20 @@
+using TaskTracker.Domain.Exceptions;
+
 namespace TaskTracker.Domain.Tests.TaskItemTests;
 
 public class UpdateDetailsTests : TaskItemTestBase
 {
     [Fact] // update requires a real timestamp and rejects default value
-    public void UpdateDetails_WhenTimeIsDefault_ThrowsArgumentException()
+    public void UpdateDetails_WhenTimeIsDefault_ThrowsDomainValidationException()
     {
         // Given
         var task = CreateValidTask();
 
-        var updatedTitle = "Updated Title";
-        var updatedNotes = "Updated Notes";
-        var defaultTime = default(DateTimeOffset);
-    
         // When
-        Action act = () => task.UpdateDetails(updatedTitle, updatedNotes, defaultTime);
-    
+        Action act = () => task.UpdateDetails(UpdatedValidTitle, UpdatedValidNotes, DefaultTime);
+
         // Then
-        act.Should().Throw<ArgumentException>().WithParameterName("now");
+        act.Should().Throw<DomainValidationException>().WithParameterName("now").WithMessage("*Now must be a valid time.*");
     }
 
     [Theory] // title required and cannot be null empty or whitespace
@@ -24,92 +22,83 @@ public class UpdateDetailsTests : TaskItemTestBase
     [InlineData("")] // empty
     [InlineData(" ")] // whitespace
     [InlineData("     ")] // moar whitespaces  
-    public void UpdateDetails_WhenTitleIsNullEmptyOrWhitespace_ThrowsArgumentException(string? title)
+    public void UpdateDetails_WhenTitleIsNullEmptyOrWhitespace_ThrowsDomainValidationException(string? title)
     {
         // Given           
         var task = CreateValidTask();
-        
+
         // When
         Action act = () => task.UpdateDetails(title!, ValidNotes, ValidUpdateTime);
-    
+
         // Then
-        act.Should().Throw<ArgumentException>().WithParameterName("title");
+        act.Should().Throw<DomainValidationException>().WithParameterName("title").WithMessage("*Title cannot be null, empty, or whitespace.*");
     }
 
     [Fact] // guards against validating raw title length instead of trimmed length
-    public void UpdateDetails_WhenTrimmedTitleLengthExceedsLimit_ThrowsArgumentException()
+    public void UpdateDetails_WhenTrimmedTitleLengthExceedsLimit_ThrowsDomainValidationException()
     {
         // Given
         var task = CreateValidTask();
-        
+
         var invalidTitleLengthAfterTrim = "   " + new string('a', 101) + "   ";
-        var validNotes = "notes";
-        var validUpdatedAtTime = new DateTimeOffset(2026, 6, 07, 06, 07, 0, TimeSpan.Zero);
 
         // When
-        Action act = () => task.UpdateDetails(invalidTitleLengthAfterTrim, validNotes, validUpdatedAtTime);
+        Action act = () => task.UpdateDetails(invalidTitleLengthAfterTrim, ValidNotes, ValidUpdateTime);
 
         // Then
-        act.Should().Throw<ArgumentException>().WithParameterName("title");
+        act.Should().Throw<DomainValidationException>().WithParameterName("title").WithMessage("*Title cannot exceed 100 characters.*");
     }
 
     [Theory] // title must not exceed 100 characters after normalization
     [InlineData(101)]
     [InlineData(150)]
     [InlineData(300)]
-    public void UpdateDetails_WhenTitleLengthExceedsLimit_ThrowsArgumentException(int titleLength)
+    public void UpdateDetails_WhenTitleLengthExceedsLimit_ThrowsDomainValidationException(int titleLength)
     {
         // Given
 
         var task = CreateValidTask();
 
         var titleWithInvalidLength = new string('a', titleLength);
-        var validNotes = "From the store";
-        var validUpdatedAtTime = new DateTimeOffset(2026, 6, 07, 06, 07, 0, TimeSpan.Zero);
 
         // When
-        Action act = () => task.UpdateDetails(titleWithInvalidLength, validNotes, validUpdatedAtTime);
+        Action act = () => task.UpdateDetails(titleWithInvalidLength, ValidNotes, ValidUpdateTime);
 
         // Then
-        act.Should().Throw<ArgumentException>().WithParameterName("title");
+        act.Should().Throw<DomainValidationException>().WithParameterName("title").WithMessage("*Title cannot exceed 100 characters.*");
     }
 
     [Fact] // guards against validating raw notes length instead of trimmed length
-    public void UpdateDetails_WhenTrimmedNotesLengthExceedsLimit_ThrowsArgumentException()
+    public void UpdateDetails_WhenTrimmedNotesLengthExceedsLimit_ThrowsDomainValidationException()
     {
         // Given
         var task = CreateValidTask();
 
-        var validUpdatedTitle = "Buy 2 milk";
         var invalidNotesLengthAfterTrim = "   " + new string('a', 501) + "   ";
-        var validUpdatedAtTime = new DateTimeOffset(2026, 6, 07, 06, 07, 0, TimeSpan.Zero);
-
 
         // When
-        Action act = () => task.UpdateDetails(validUpdatedTitle, invalidNotesLengthAfterTrim, validUpdatedAtTime);
+        Action act = () => task.UpdateDetails(UpdatedValidTitle, invalidNotesLengthAfterTrim, ValidUpdateTime);
 
         // Then
-        act.Should().Throw<ArgumentException>().WithParameterName("notes");
+        act.Should().Throw<DomainValidationException>().WithParameterName("notes").WithMessage("*Notes cannot exceed 500 characters.*");
     }
 
     [Theory] // notes must not exceed 500 characters after normalization
     [InlineData(501)]
     [InlineData(750)]
     [InlineData(1000)]
-    public void UpdateDetails_WhenNotesLengthExceedsLimit_ThrowsArgumentException(int notesLength)
+    public void UpdateDetails_WhenNotesLengthExceedsLimit_ThrowsDomainValidationException(int notesLength)
     {
         // Given
         var task = CreateValidTask();
 
-        var validUpdatedTitle = "Buy 2 milk";
-        var notesWithInvalidLength = new string('a', notesLength);        
-        var validUpdatedAtTime = new DateTimeOffset(2026, 6, 07, 06, 07, 0, TimeSpan.Zero);
+        var notesWithInvalidLength = new string('a', notesLength);
 
         // When
-        Action act = () => task.UpdateDetails(validUpdatedTitle, notesWithInvalidLength, validUpdatedAtTime);
+        Action act = () => task.UpdateDetails(UpdatedValidTitle, notesWithInvalidLength, ValidUpdateTime);
 
         // Then
-        act.Should().Throw<ArgumentException>().WithParameterName("notes");
+        act.Should().Throw<DomainValidationException>().WithParameterName("notes").WithMessage("*Notes cannot exceed 500 characters.*");
     }
 
     [Theory] // notes are normalized to null instead of being stored as empty text
@@ -122,12 +111,9 @@ public class UpdateDetailsTests : TaskItemTestBase
         // Given  
         var task = CreateValidTask();
 
-        var validUpdatedTitle = "Buy 2 milk";        
-        var validUpdatedAtTime = new DateTimeOffset(2026, 6, 07, 06, 07, 0, TimeSpan.Zero);
-        
         // When
-        task.UpdateDetails(validUpdatedTitle, notes, validUpdatedAtTime);
-    
+        task.UpdateDetails(UpdatedValidTitle, notes, ValidUpdateTime);
+
         // Then
         task.Notes.Should().BeNull();
     }
@@ -140,25 +126,26 @@ public class UpdateDetailsTests : TaskItemTestBase
 
         string unchnagedTitle = task.Title;
         string unchangedNotes = task.Notes!;
-        var validUpdatedAtTime = new DateTimeOffset(2026, 6, 07, 06, 07, 0, TimeSpan.Zero);        
 
         var idBeforeUpdateDetails = task.Id;
         var titleBeforeUpdateDetails = task.Title;
         var notesUpdateDetails = task.Notes;
         var statusUpdateDetails = task.Status;
-        var createdAtUpdateDetails = task.CreatedAt;        
+        var priorityUpdateDetails = task.Priority;
+        var createdAtUpdateDetails = task.CreatedAt;
         var completedAtUpdateDetails = task.CompletedAt;
         var updatedAtUpdateDetails = task.UpdatedAt;
-    
+
         // When
-        task.UpdateDetails(unchnagedTitle, unchangedNotes, validUpdatedAtTime);
-    
+        task.UpdateDetails(unchnagedTitle, unchangedNotes, ValidUpdateTime);
+
         // Then
         task.Id.Should().Be(idBeforeUpdateDetails);
         task.Title.Should().Be(titleBeforeUpdateDetails);
         task.Notes.Should().Be(notesUpdateDetails);
         task.Status.Should().Be(statusUpdateDetails);
-        task.CreatedAt.Should().Be(createdAtUpdateDetails);       
+        task.Priority.Should().Be(priorityUpdateDetails);
+        task.CreatedAt.Should().Be(createdAtUpdateDetails);
         task.CompletedAt.Should().Be(completedAtUpdateDetails);
         task.UpdatedAt.Should().Be(updatedAtUpdateDetails);
     }
@@ -172,15 +159,13 @@ public class UpdateDetailsTests : TaskItemTestBase
         // Given
         var task = CreateValidTask();
 
-        var updatedValidTitle = new string('a', titleLength);
-        var validNotes = "From the store";
-        var validUpdatedAtTime = new DateTimeOffset(2026, 6, 07, 06, 07, 0, TimeSpan.Zero);  
+        var updatedValidTitleWithinLimit = new string('a', titleLength);
 
         // When
-        task.UpdateDetails(updatedValidTitle, validNotes, validUpdatedAtTime);
+        task.UpdateDetails(updatedValidTitleWithinLimit, ValidNotes, ValidUpdateTime);
 
         // Then
-        task.Title.Should().Be(updatedValidTitle);
+        task.Title.Should().Be(updatedValidTitleWithinLimit);
     }
 
     [Fact] // ensures trimming occurs before storing and validating title length
@@ -189,12 +174,10 @@ public class UpdateDetailsTests : TaskItemTestBase
         // Given
         var task = CreateValidTask();
 
-        var updatedValidTitle = "   " + new string('a', 100) + "   ";
-        var validNotes = "From the store";
-        var validUpdatedAtTime = new DateTimeOffset(2026, 6, 07, 06, 07, 0, TimeSpan.Zero);  
+        var updatedTrimmedValidTitle = "   " + new string('a', 100) + "   ";
 
         // When
-        task.UpdateDetails(updatedValidTitle, validNotes, validUpdatedAtTime);
+        task.UpdateDetails(updatedTrimmedValidTitle, ValidNotes, ValidUpdateTime);
 
         // Then
         task.Title.Should().Be(new string('a', 100));
@@ -206,12 +189,10 @@ public class UpdateDetailsTests : TaskItemTestBase
         // Given
         var task = CreateValidTask();
 
-        var validTitle = "Buy milk";
         var updatedValidNotesWithSpaces = "   " + new string('a', 500) + "   ";
-        var validUpdatedAtTime = new DateTimeOffset(2026, 6, 07, 06, 07, 0, TimeSpan.Zero);  
 
         // When
-        task.UpdateDetails(validTitle, updatedValidNotesWithSpaces, validUpdatedAtTime);
+        task.UpdateDetails(ValidTitle, updatedValidNotesWithSpaces, ValidUpdateTime);
 
         // Then
         task.Notes.Should().Be(new string('a', 500));
@@ -226,34 +207,28 @@ public class UpdateDetailsTests : TaskItemTestBase
         // Given
         var task = CreateValidTask();
 
-        var validTitle = "Buy milk";
-        var updatedValidNotesWithSpaces = new string('a', notesLength);        
-        var validUpdatedAtTime = new DateTimeOffset(2026, 6, 07, 06, 07, 0, TimeSpan.Zero);  
+        var updatedValidNotesWithinLimit = new string('a', notesLength);
 
         // When
-        task.UpdateDetails(validTitle, updatedValidNotesWithSpaces, validUpdatedAtTime);
+        task.UpdateDetails(ValidTitle, updatedValidNotesWithinLimit, ValidUpdateTime);
 
         // Then
-        task.Notes.Should().Be(updatedValidNotesWithSpaces);
+        task.Notes.Should().Be(updatedValidNotesWithinLimit);
     }
 
-    [Fact] // ensures trimming occurs before storing and validating notes length
+    [Fact]
     public void UpdateDetails_WithValidTitleAndNotes_UpdatesTask()
     {
         // Given
         var task = CreateValidTask();
 
-        var updatedValidTitle = "Buy 2 milk";
-        var updatedValidNotesWithSpaces = "From the milk store";
-        var validUpdatedAtTime = new DateTimeOffset(2026, 6, 07, 06, 07, 0, TimeSpan.Zero);  
-
         // When
-        task.UpdateDetails(updatedValidTitle, updatedValidNotesWithSpaces, validUpdatedAtTime);
+        task.UpdateDetails(UpdatedValidTitle, UpdatedValidNotes, ValidUpdateTime);
 
         // Then
-        task.Title.Should().Be(updatedValidTitle);
-        task.Notes.Should().Be(updatedValidNotesWithSpaces);
-        task.UpdatedAt.Should().Be(validUpdatedAtTime);
+        task.Title.Should().Be(UpdatedValidTitle);
+        task.Notes.Should().Be(UpdatedValidNotes);
+        task.UpdatedAt.Should().Be(ValidUpdateTime);
     }
 
     [Fact]
@@ -262,25 +237,21 @@ public class UpdateDetailsTests : TaskItemTestBase
         // Given
         var task = CreateValidTask();
 
-        var updatedValidTitle = "Buy 2 milk";
-        var updatedValidNotesWithSpaces = "From the milk store";
-        var validUpdatedAtTime = new DateTimeOffset(2026, 6, 07, 06, 07, 0, TimeSpan.Zero);  
-
         var idBeforeUpdateDetails = task.Id;
         var statusUpdateDetails = task.Status;
-        var createdAtUpdateDetails = task.CreatedAt;        
+        var createdAtUpdateDetails = task.CreatedAt;
         var completedAtUpdateDetails = task.CompletedAt;
-        
+
 
         // When
-        task.UpdateDetails(updatedValidTitle, updatedValidNotesWithSpaces, validUpdatedAtTime);
+        task.UpdateDetails(UpdatedValidTitle, UpdatedValidNotes, ValidUpdateTime);
 
         // Then
-        task.Id.Should().Be(idBeforeUpdateDetails);        
+        task.Id.Should().Be(idBeforeUpdateDetails);
         task.Status.Should().Be(statusUpdateDetails);
-        task.CreatedAt.Should().Be(createdAtUpdateDetails);       
+        task.CreatedAt.Should().Be(createdAtUpdateDetails);
         task.CompletedAt.Should().Be(completedAtUpdateDetails);
-        
+
     }
 
 }

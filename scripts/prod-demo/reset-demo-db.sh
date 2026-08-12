@@ -17,6 +17,7 @@ run_psql_scalar() {
     -f docker-compose.prod.yml \
     exec -T tasktracker-db-prod \
     psql \
+      -v ON_ERROR_STOP=1 \
       -q -t -A \
       -U "$TASKTRACKER_POSTGRES_USER" \
       -d "$TASKTRACKER_POSTGRES_DB" \
@@ -44,6 +45,7 @@ docker compose \
   -f docker-compose.prod.yml \
   exec -T tasktracker-db-prod \
   psql \
+    -v ON_ERROR_STOP=1 \
     -q \
     -U "$TASKTRACKER_POSTGRES_USER" \
     -d "$TASKTRACKER_POSTGRES_DB" \
@@ -58,6 +60,18 @@ echo "Verifying seeded task count..."
 SEEDED_TASK_COUNT=$(run_psql_scalar 'SELECT COUNT(*) FROM "Tasks";')
 
 echo "Seeded task count: $SEEDED_TASK_COUNT"
+echo
+
+echo "Verifying seeded task priorities..."
+
+INVALID_PRIORITY_COUNT=$(run_psql_scalar "SELECT COUNT(*) FROM \"Tasks\" WHERE \"Priority\" IS NULL OR \"Priority\" NOT IN ('Low', 'Medium', 'High', 'Critical');")
+
+if [[ "$INVALID_PRIORITY_COUNT" != "0" ]]; then
+  echo "Invalid task priorities found: $INVALID_PRIORITY_COUNT"
+  exit 1
+fi
+
+echo "Seeded task priorities are valid."
 echo
 
 echo "========================================"
