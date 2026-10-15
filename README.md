@@ -24,7 +24,7 @@ Live demo: [https://tasktracker.stevenborkowski.dev](https://tasktracker.stevenb
 | API | .NET 10 Minimal API with EF Core and PostgreSQL. |
 | UI | React 19, Vite, and Tailwind CSS. |
 | Testing | xUnit, FluentAssertions, WebApplicationFactory, and Playwright. |
-| Deployment | Docker Compose, Nginx /api routing, PostgreSQL 17, and a manual production deploy workflow. |
+| Deployment | Multi-architecture GHCR images; production runtime is managed by `homelab-infra`. |
 
 ## Testing And Quality
 
