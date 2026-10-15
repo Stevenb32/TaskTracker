@@ -4,7 +4,14 @@ using TaskTracker.Api.Endpoints;
 using TaskTracker.Api.ErrorHandling;
 using TaskTracker.Api.Json;
 
-var builder = WebApplication.CreateBuilder(args);
+var migrateDatabase = args.Any(
+    arg => string.Equals(arg, "--migrate-db", StringComparison.OrdinalIgnoreCase));
+
+var applicationArgs = args
+    .Where(arg => !string.Equals(arg, "--migrate-db", StringComparison.OrdinalIgnoreCase))
+    .ToArray();
+
+var builder = WebApplication.CreateBuilder(applicationArgs);
 
 // services
 builder.Services.AddEndpointsApiExplorer();
@@ -18,7 +25,8 @@ builder.Services.ConfigureHttpJsonOptions(options =>
 
 var connectionString = builder.Configuration.GetConnectionString("TaskTrackerDb");
 
-builder.Services.AddDbContext<TaskTrackerDbContext>(options => options.UseNpgsql(connectionString));
+builder.Services.AddDbContext<TaskTrackerDbContext>(
+    options => options.UseNpgsql(connectionString));
 
 builder.Services.AddValidation();
 builder.Services.AddExceptionHandler<BadRequestExceptionHandler>();
@@ -26,6 +34,21 @@ builder.Services.AddExceptionHandler<DomainValidationExceptionHandler>();
 builder.Services.AddProblemDetails();
 
 var app = builder.Build();
+
+if (migrateDatabase)
+{
+    Console.WriteLine("Applying TaskTracker database migrations...");
+
+    await using var scope = app.Services.CreateAsyncScope();
+
+    var db = scope.ServiceProvider.GetRequiredService<TaskTrackerDbContext>();
+
+    await db.Database.MigrateAsync();
+
+    Console.WriteLine("TaskTracker database migrations completed successfully.");
+
+    return;
+}
 
 if (app.Environment.IsDevelopment() || app.Environment.IsEnvironment("E2E"))
 {
