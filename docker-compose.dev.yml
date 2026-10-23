@@ -1,6 +1,6 @@
 services:
   tasktracker-db:
-    image: postgres:17
+    image: postgres:17.11
     container_name: tasktracker-postgres-dev
     environment:
       POSTGRES_DB: tasktracker_dev
